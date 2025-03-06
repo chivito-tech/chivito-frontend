@@ -1,57 +1,50 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { Bell, Bookmark, Menu, X } from "lucide-react";
 import { motion } from "framer-motion";
 import Modal from "@/components/Modal";
 import Login from "@/components/Login"; // Import the login form
 
-export default function Navbar() {
+export default function TopBar() {
   const [isOpen, setIsOpen] = useState(false);
   const [showLogin, setShowLogin] = useState(false); // State for login modal
 
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50">
-      <div className="container mx-auto flex justify-between items-center py-4 px-8 md:px-1 lg:px-2">
-        <h1 className="text-2xl font-bold text-purple-600">Chivito</h1>
+    <nav className="bg-white shadow-sm sticky top-0 z-50">
+      <div className="container mx-auto flex justify-between items-center py-3 px-5 md:px-1 lg:px-2">
+        <div>
+          <p className="text-xs text-gray-500">Welcome to Chivito 👋</p>
+          <p className="text-sm font-semibold">User</p>
+        </div>
+        <div className="flex space-x-4">
+          <button>
+            <Bell className="text-gray-700 w-6 h-6" />
+          </button>
+          <button>
+            <Bookmark className="text-gray-700 w-6 h-6" />
+          </button>
+        </div>
 
-        {/* Desktop Menu */}
-        <ul className="hidden md:flex space-x-6">
-          <li>
-            <Link
-              href="/"
-              className="text-gray-700 hover:text-purple-600 transition font-medium"
-            >
-              Home
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/services"
-              className="text-gray-700 hover:text-purple-600 transition font-medium"
-            >
-              Services
-            </Link>
-          </li>
-        </ul>
-
-        <ul className="hidden md:flex space-x-6">
+        {/* TODO:THIS BUTTON SHOULD GO INSIDE PROFILE PAGE */}
+        {/* <ul className="hidden md:flex space-x-6">
           <button
             onClick={() => setShowLogin(true)}
             className="bg-purple-600 text-white px-5 py-2 h-10 flex items-center rounded-lg hover:bg-purple-500 transition-all font-medium shadow-md"
           >
             Login
           </button>
-        </ul>
+        </ul> */}
 
-        {/* Mobile Menu Button */}
+        {/* TODO: this logic too. dont remove it, it can be useful later */}
+        {/* Mobile Menu Button
         <button className="md:hidden" onClick={() => setIsOpen(!isOpen)}>
           {isOpen ? (
             <X className="w-8 h-8 text-gray-700" />
           ) : (
             <Menu className="w-8 h-8 text-gray-700" />
           )}
-        </button>
+        </button> */}
       </div>
 
       {isOpen && (
@@ -92,6 +85,13 @@ export default function Navbar() {
       <Modal isOpen={showLogin} onClose={() => setShowLogin(false)}>
         <Login />
       </Modal>
+      <div className="flex justify-around px-2 md:px-20">
+        <input
+          type="text"
+          placeholder="Search"
+          className="border p-4 w-full rounded-lg shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
+        />
+      </div>
     </nav>
   );
 }
