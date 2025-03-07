@@ -3,8 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Bell, Bookmark, Menu, X } from "lucide-react";
 import { motion } from "framer-motion";
-import Modal from "@/components/Modal";
-import Login from "@/components/Login"; // Import the login form
+import Modal from "@/app/components/Modal";
 
 export default function TopBar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -81,10 +80,10 @@ export default function TopBar() {
         </motion.div>
       )}
 
-      {/* Login Modal */}
+      {/* Login Modal
       <Modal isOpen={showLogin} onClose={() => setShowLogin(false)}>
         <Login />
-      </Modal>
+      </Modal> */}
       <div className="flex justify-around px-2 md:px-20">
         <input
           type="text"
