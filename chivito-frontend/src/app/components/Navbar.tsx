@@ -32,23 +32,12 @@ export default function TopBar() {
 
           {/* Right: Icons */}
           <div className="flex items-center space-x-4">
-            <button className="p-2 rounded-full hover:bg-gray-100 transition">
-              <Bell className="text-gray-700 w-6 h-6" />
-            </button>
-            <button className="p-2 rounded-full hover:bg-gray-100 transition">
-              <Bookmark className="text-gray-700 w-6 h-6" />
-            </button>
-
             {/* Mobile Menu Button */}
             <button
-              className="md:hidden p-2 rounded-full hover:bg-gray-100 transition"
+              className="p-2 rounded-full hover:bg-gray-100 transition"
               onClick={() => setIsOpen(!isOpen)}
             >
-              {isOpen ? (
-                <X className="w-8 h-8 text-gray-700" />
-              ) : (
-                <Menu className="w-8 h-8 text-gray-700" />
-              )}
+              <Menu className="w-8 h-8 text-gray-700" />
             </button>
           </div>
         </div>
@@ -69,9 +58,10 @@ export default function TopBar() {
           initial={{ y: -10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -10, opacity: 0 }}
-          className="absolute top-16 left-0 right-0 bg-white shadow-md rounded-md p-4 flex flex-col space-y-4"
+          className="absolute top-16 left-50 right-20 bg-white shadow-md rounded-md p-5 flex flex-col space-y-4"
         >
           <Button variant="outline">Login</Button>
+          <Button variant="outline">Bookmark</Button>
         </motion.div>
       )}
 
