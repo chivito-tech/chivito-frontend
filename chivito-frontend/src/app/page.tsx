@@ -2,7 +2,6 @@
 import { useState } from "react";
 
 export default function Home() {
-  const categories = ["All", "Cleaning", "Repairing", "Painting", "Plumbing"];
   const services = [
     {
       name: "Santos Daniel",
@@ -16,39 +15,62 @@ export default function Home() {
       price: "$25",
       rating: 4.8,
       reviews: "8,289",
+      phone: "123-456-7890",
       location: ["Norte", "Sur", "Metro"],
       image: "/cleaning-1.jpg",
+      description:
+        "Experienced in multiple trades, providing top-quality service.",
     },
     {
       name: "Joel Colon",
       service: ["Painting", "Construction", "Electrician", "Detailer"],
       price: "$20",
       rating: 4.9,
+      phone: "123-456-7890",
+
       reviews: "6,182",
-      location: ["Norte", "Sur", "metro", "Este"],
+      location: ["Norte", "Sur", "Metro", "Este"],
       image: "/cleaning-2.jpg",
+      description:
+        "Specializes in painting and construction with a 4.9 rating.",
     },
     {
       name: "Luis Colon",
       service: ["Nah"],
       price: "$22",
       rating: 4.7,
+      phone: "123-456-7890",
+
       reviews: "7,938",
       location: ["Sur"],
       image: "/cleaning-3.jpg",
+      description: "Provides reliable services at an affordable rate.",
     },
     {
       name: "Angel Tomas",
       service: ["Plumber"],
       price: "$24",
+      phone: "123-456-7890",
+
       rating: 4.9,
       location: ["Metro"],
       reviews: "6,182",
       image: "/cleaning-4.jpg",
+      description: "Expert plumber with years of experience.",
     },
   ];
 
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedProvider, setSelectedProvider] = useState<{
+    name: string;
+    service: string[];
+    price: string;
+    phone: string;
+    rating: number;
+    reviews: string;
+    location: string[];
+    image: string;
+    description: string;
+  } | null>(null);
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gray-50 px-4 md:px-12">
@@ -119,7 +141,8 @@ export default function Home() {
         {services.map((provider, index) => (
           <div
             key={index}
-            className="flex items-center bg-white p-4 rounded-2xl shadow-md hover:shadow-lg transition"
+            onClick={() => setSelectedProvider(provider)}
+            className="cursor-pointer flex items-center bg-white p-4 rounded-2xl shadow-md hover:shadow-lg transition"
           >
             {/* Image */}
             <div className="w-24 h-24 md:w-32 md:h-32 rounded-xl overflow-hidden">
@@ -139,6 +162,7 @@ export default function Home() {
                   {provider.price}
                 </span>
               </p>
+
               {/* Tags for Multiple Services */}
               <div className="flex flex-wrap gap-2 mt-2">
                 {provider.service.map((service, i) => (
@@ -180,12 +204,128 @@ export default function Home() {
         ))}
       </div>
 
-      <div className="text-center mt-12 px-4">
-        <h1 className="text-4xl md:text-6xl font-extrabold text-blue-600 flex justify-center items-center">
-          Hello, Chivito! 🚀
-        </h1>
-        <p className="text-lg text-red-500 mt-4">Tailwind is working!</p>
-      </div>
+      {/* MODAL */}
+      {selectedProvider && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4 z-50">
+          {/* Prevent Background Scrolling */}
+          <style>{`body { overflow: hidden; }`}</style>
+
+          <div className="bg-white p-7 rounded-lg max-w-lg w-full shadow-lg relative flex flex-col max-h-[90vh] overflow-y-auto">
+            {/* Close Button */}
+            <button
+              className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
+              onClick={() => {
+                setSelectedProvider(null);
+                document.body.style.overflow = "auto"; // Restore scrolling
+              }}
+            >
+              ✖
+            </button>
+
+            {/* Provider Image */}
+            <div className="relative">
+              <img
+                src={selectedProvider.image}
+                alt={selectedProvider.name}
+                className="w-full h-48 object-cover rounded-lg mb-4"
+              />
+              {/* Bookmark Button */}
+              <button className="absolute top-3 right-3 bg-white p-2 rounded-full shadow-md text-purple-600 hover:text-purple-800">
+                📌
+              </button>
+            </div>
+
+            {/* Provider Info */}
+            <h2 className="text-2xl font-bold text-gray-900">
+              {selectedProvider.name}
+            </h2>
+            <div className="flex items-center mt-2 text-gray-600 text-sm">
+              ⭐{" "}
+              <span className="ml-1 font-medium">
+                {selectedProvider.rating}
+              </span>
+              <span className="ml-2">({selectedProvider.reviews} reviews)</span>
+            </div>
+
+            {/* Service Category */}
+            <div className="mt-3 flex flex-wrap gap-2">
+              {selectedProvider.service.map((service, i) => (
+                <span
+                  key={i}
+                  className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium"
+                >
+                  {service}
+                </span>
+              ))}
+            </div>
+
+            {/* Location */}
+            <div className="mt-3 flex flex-wrap gap-2">
+              {selectedProvider.location.length > 3 ? (
+                <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
+                  Isla
+                </span>
+              ) : (
+                selectedProvider.location.map((location, i) => (
+                  <span
+                    key={i}
+                    className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium"
+                  >
+                    {location}
+                  </span>
+                ))
+              )}
+            </div>
+
+            {/* Pricing */}
+            <p className="mt-4 text-xl font-semibold text-purple-700">
+              {selectedProvider.price}
+            </p>
+
+            {/* Phone Number (Clickable) */}
+            <div className="mt-2 flex items-center">
+              📞
+              <a
+                href={`tel:${selectedProvider.phone}`}
+                className="ml-2 text-blue-600 font-medium hover:underline"
+              >
+                {selectedProvider.phone}
+              </a>
+            </div>
+
+            {/* About Me Section */}
+            <div className="mt-4">
+              <h3 className="text-lg font-semibold text-gray-900">About Me</h3>
+              <p className="text-gray-600 mt-1">
+                {selectedProvider.description}
+              </p>
+            </div>
+
+            {/* Photos & Videos Placeholder */}
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Photos & Videos
+              </h3>
+              <div className="flex gap-3 mt-2">
+                <div className="w-1/3 h-20 bg-gray-200 rounded-lg"></div>
+                <div className="w-1/3 h-20 bg-gray-200 rounded-lg"></div>
+                <div className="w-1/3 h-20 bg-gray-200 rounded-lg"></div>
+              </div>
+            </div>
+
+            {/* Close Button */}
+            <button
+              className="mt-6 w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
+              onClick={() => {
+                setSelectedProvider(null);
+                document.body.style.overflow = "auto"; // Restore scrolling
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
