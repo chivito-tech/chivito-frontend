@@ -39,34 +39,36 @@ export default function Home() {
           See All
         </p>
       </div>
-      {/* Popular Services Scrollable Buttons */}
-      <div className="flex items-center w-full overflow-x-auto pb-2">
-        <div className="flex space-x-4 px-8">
-          {[
-            "Mechanic",
-            "Electrician",
-            "Detailer",
-            "Painter",
-            "Plumber",
-            "Constructor",
-            "Carpenter",
-            "Gardener",
-          ].map((service, index) => (
-            <button
-              key={index}
-              className="whitespace-nowrap rounded-full shadow-md px-4 py-2 text-sm text-gray-500 cursor-pointer hover:text-gray-700 transition"
-            >
-              {service}
-            </button>
-          ))}
+      <div className="w-full">
+        <div className="flex justify-center md:justify-center overflow-x-auto">
+          <div className="flex space-x-4 px-4 md:px-0 py-2 max-w-5xl">
+            {[
+              "Mechanic",
+              "Electrician",
+              "Detailer",
+              "Painter",
+              "Plumber",
+              "Constructor",
+              "Carpenter",
+              "Gardener",
+            ].map((service, index) => (
+              <button
+                key={index}
+                className="whitespace-nowrap rounded-full bg-white shadow-md px-6 py-2 text-sm font-medium text-gray-700 border-gray-300 transition hover:bg-gray-100 hover:shadow-lg"
+              >
+                {service}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      <h1 className="text-4xl md:text-6xl font-extrabold text-blue-600 flex items-center mt-12">
-        Hello, Chivito! 🚀
-      </h1>
-
-      <p className="text-lg text-red-500 mt-4">Tailwind is working!</p>
+      <div className="text-center mt-12 px-4">
+        <h1 className="text-4xl md:text-6xl font-extrabold text-blue-600 flex justify-center items-center">
+          Hello, Chivito! 🚀
+        </h1>
+        <p className="text-lg text-red-500 mt-4">Tailwind is working!</p>
+      </div>
     </div>
   );
 }
