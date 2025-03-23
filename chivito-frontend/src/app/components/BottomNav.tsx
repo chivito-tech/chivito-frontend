@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { Home, Calendar, Inbox, User } from "lucide-react";
+import { Home, Calendar, Inbox, User, Search } from "lucide-react";
 import { useState } from "react";
 
 export default function BottomNav() {
@@ -38,19 +38,19 @@ export default function BottomNav() {
         onClick={() => handleNavigation("calendar", "/calendar")}
         className="flex flex-col items-center"
       >
-        <Calendar
+        <Search
           className={`w-6 h-6 ${
-            activeTab === "calendar" ? "text-purple-500" : "text-gray-500"
+            activeTab === "search" ? "text-purple-500" : "text-gray-500"
           }`}
         />
         <span
           className={`text-xs ${
-            activeTab === "calendar"
+            activeTab === "search"
               ? "text-purple-500 font-semibold"
               : "text-gray-500"
           }`}
         >
-          Booking
+          Search
         </span>
       </button>
 
