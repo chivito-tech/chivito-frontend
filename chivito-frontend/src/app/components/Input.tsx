@@ -1,4 +1,4 @@
-import "../app/globals.css"; // Ensure this line is present
+// import "../app/globals.css"; // Ensure this line is present
 
 interface InputProps {
   label: string;

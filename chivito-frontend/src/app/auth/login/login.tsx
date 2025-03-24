@@ -8,6 +8,12 @@ export default function LoginScreen({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState("home");
+
+  const handleNavigation = (tab, path) => {
+    setActiveTab(tab);
+    router.push(path);
+  };
 
   const handleLogin = () => {
     // Simulate authentication (Replace with real API call)
@@ -69,8 +75,8 @@ export default function LoginScreen({ onLogin }) {
         <p className="text-sm text-center mt-4 text-gray-500">
           Don't have an account?{" "}
           <button
+            onClick={() => handleNavigation("signup", "/signup")}
             className="text-purple-600 font-semibold hover:underline"
-            onClick={() => router.push("/auth/signup")}
           >
             Sign Up
           </button>
