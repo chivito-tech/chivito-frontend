@@ -5,10 +5,18 @@ import { motion } from "framer-motion";
 import Modal from "@/app/components/Modal";
 import Login from "../auth/login/login";
 import Button from "./Button";
+import { useRouter } from "next/navigation";
 
 export default function TopBar() {
   const [isOpen, setIsOpen] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState("home");
+
+  const handleNavigation = (tab, path) => {
+    setActiveTab(tab);
+    router.push(path);
+  };
 
   return (
     <div className="relative bg-gray-50">
@@ -60,7 +68,12 @@ export default function TopBar() {
           exit={{ y: -10, opacity: 0 }}
           className="absolute top-16 left-50 right-20 bg-white shadow-md rounded-md p-5 flex flex-col space-y-4"
         >
-          <Button variant="outline">Login</Button>
+          <Button
+            onClick={() => handleNavigation("profile", "/profile")}
+            variant="outline"
+          >
+            Login
+          </Button>
           <Button variant="outline">Bookmark</Button>
         </motion.div>
       )}
