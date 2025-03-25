@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 
 export default function LoginScreen({ onLogin }) {
   const router = useRouter();
@@ -27,9 +28,13 @@ export default function LoginScreen({ onLogin }) {
       <h1 className="text-3xl font-bold text-purple-600 mb-6 text-center">
         Welcome to Chivito
       </h1>
-
       {/* Login Form */}
-      <div className="w-full max-w-sm bg-white p-6 rounded-lg shadow-lg">
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="w-full max-w-sm bg-white p-6 rounded-lg shadow-lg"
+      >
         <label className="block text-gray-700 text-sm font-semibold mb-1">
           Email
         </label>
@@ -40,7 +45,6 @@ export default function LoginScreen({ onLogin }) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
-
         <label className="block text-gray-700 text-sm font-semibold mb-1 mt-4">
           Password
         </label>
@@ -64,14 +68,12 @@ export default function LoginScreen({ onLogin }) {
             )}
           </button>
         </div>
-
         <button
           className="w-full mt-6 bg-purple-600 text-white p-3 rounded-lg hover:bg-purple-500 transition font-semibold shadow-md"
           onClick={handleLogin}
         >
           Login
         </button>
-
         <p className="text-sm text-center mt-4 text-gray-500">
           Don't have an account?{" "}
           <button
@@ -80,8 +82,9 @@ export default function LoginScreen({ onLogin }) {
           >
             Sign Up
           </button>
-        </p>
-      </div>
+        </p>{" "}
+      </motion.div>
+      {/* </div> */}
     </div>
   );
 }
