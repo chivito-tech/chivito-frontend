@@ -1,13 +1,13 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { Home, Calendar, Inbox, User, Search } from "lucide-react";
+import { Home, Calendar, Inbox, User, Search, Bookmark } from "lucide-react";
 import { useState } from "react";
 
 export default function BottomNav() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("home");
 
-  const handleNavigation = (tab, path) => {
+  const handleNavigation = (tab: string, path: string) => {
     setActiveTab(tab);
     router.push(path);
   };
@@ -51,6 +51,26 @@ export default function BottomNav() {
           }`}
         >
           Search
+        </span>
+      </button>
+
+      <button
+        onClick={() => handleNavigation("calendar", "/calendar")}
+        className="flex flex-col items-center"
+      >
+        <Bookmark
+          className={`w-6 h-6 ${
+            activeTab === "bookmark" ? "text-purple-500" : "text-gray-500"
+          }`}
+        />
+        <span
+          className={`text-xs ${
+            activeTab === "bookmark"
+              ? "text-purple-500 font-semibold"
+              : "text-gray-500"
+          }`}
+        >
+          Bookmark
         </span>
       </button>
 

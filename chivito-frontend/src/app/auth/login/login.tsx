@@ -4,6 +4,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
+// TODO:fix this implicit error
 export default function LoginScreen({ onLogin }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -11,7 +12,7 @@ export default function LoginScreen({ onLogin }) {
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState("home");
 
-  const handleNavigation = (tab, path) => {
+  const handleNavigation = (tab: string, path: string) => {
     setActiveTab(tab);
     router.push(path);
   };

@@ -102,7 +102,7 @@ export default function Signup() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            // className="bg-purple-500 text-white py-2 px-4 rounded"
+            // className="bg-purple-500 text-white py-2 px-4 rounded-sm"
             type="button"
             onClick={handleSignup}
             className="w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2.5 mt-8 rounded-lg transition-all"

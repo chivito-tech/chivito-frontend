@@ -168,7 +168,7 @@ export default function Home() {
                 {provider.service.map((service, i) => (
                   <span
                     key={i}
-                    className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium shadow-sm"
+                    className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium shadow-xs"
                   >
                     {service}
                   </span>
@@ -206,7 +206,7 @@ export default function Home() {
 
       {/* MODAL */}
       {selectedProvider && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4 z-50">
+        <div className="fixed backdrop-blur-xs inset-0 bg-opacity-50 flex justify-center items-center p-4 z-50">
           {/* Prevent Background Scrolling */}
           <style>{`body { overflow: hidden; }`}</style>
 

@@ -17,7 +17,7 @@ export default function Input({
       <input
         type={type}
         placeholder={placeholder}
-        className="border p-2 rounded mt-1"
+        className="border p-2 rounded-sm mt-1"
       />
     </div>
   );
