@@ -3,24 +3,49 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import Input from "@/app/components/Input";
 
-// TODO:fix this implicit error
-export default function LoginScreen({ onLogin }) {
+interface LoginScreenProps {
+  onLogin: (userData: any) => void;
+}
+
+export default function LoginScreen({ onLogin }: LoginScreenProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState("home");
+  const formValid = email && password;
+  const [error, setError] = useState("");
 
   const handleNavigation = (tab: string, path: string) => {
     setActiveTab(tab);
     router.push(path);
   };
 
-  const handleLogin = () => {
-    // Simulate authentication (Replace with real API call)
-    const mockUser = { name: "Andrew Ainsley", email };
-    onLogin(mockUser);
+  const handleLogin = async () => {
+    try {
+      const response = await fetch("http://localhost/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data?.error || "Login failed");
+        return;
+      }
+
+      onLogin(data); // Send real user info to parent
+    } catch (err) {
+      setError("Network error. Try again.");
+      console.error(err);
+    }
   };
 
   return (
@@ -36,26 +61,20 @@ export default function LoginScreen({ onLogin }) {
         transition={{ duration: 0.4, ease: "easeOut" }}
         className="w-full max-w-sm bg-white p-6 rounded-lg shadow-lg"
       >
-        <label className="block text-gray-700 text-sm font-semibold mb-1">
-          Email
-        </label>
-        <input
+        <Input
+          label="Email"
           type="email"
-          className="w-full p-3 rounded-lg border border-gray-300 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition"
-          placeholder="Enter your email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          required
         />
-        <label className="block text-gray-700 text-sm font-semibold mb-1 mt-4">
-          Password
-        </label>
         <div className="relative">
-          <input
+          <Input
+            label="Password"
             type={showPassword ? "text" : "password"}
-            className="w-full p-3 rounded-lg border border-gray-300 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition"
-            placeholder="Enter your password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
           />
           <button
             type="button"
@@ -69,12 +88,18 @@ export default function LoginScreen({ onLogin }) {
             )}
           </button>
         </div>
-        <button
-          className="w-full mt-6 bg-purple-600 text-white p-3 rounded-lg hover:bg-purple-500 transition font-semibold shadow-md"
+        <motion.button
+          whileHover={{ scale: formValid ? 1.05 : 1 }}
+          whileTap={{ scale: 0.95 }}
+          className={`w-full font-semibold py-2.5 mt-4 rounded-lg transition-all text-center ${
+            formValid
+              ? "bg-purple-600 hover:bg-purple-700 text-white shadow-md"
+              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+          }`}
           onClick={handleLogin}
         >
           Login
-        </button>
+        </motion.button>
         <p className="text-sm text-center mt-4 text-gray-500">
           Don't have an account?{" "}
           <button
@@ -83,9 +108,8 @@ export default function LoginScreen({ onLogin }) {
           >
             Sign Up
           </button>
-        </p>{" "}
+        </p>
       </motion.div>
-      {/* </div> */}
     </div>
   );
 }
