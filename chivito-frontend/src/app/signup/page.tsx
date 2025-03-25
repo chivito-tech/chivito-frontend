@@ -190,7 +190,7 @@ export default function Signup() {
               : "bg-gray-300 text-gray-500 cursor-not-allowed"
           }`}
         >
-          Sign up
+          Create account
         </motion.button>
       </motion.div>
     </div>
