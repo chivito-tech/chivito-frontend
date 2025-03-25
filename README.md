@@ -1,24 +1,42 @@
 # Chivito
 
 Chivito is a service finder web app designed mainly for Puerto Rico, helping users connect with local service providers like plumbers, electricians, mechanics, and more. Users can search for services in their area, view provider listings with contact details, and leave reviews based on their experiences.
+
 ## 🚀 Tech Stack
 
-- **Frontend:** Next.js (React), Tailwind CSS
-- **Backend:** Laravel (PHP)
-- **Database:** MySQL / PostgreSQL
+### 🔧 Frontend
+
+- **Framework:** Next.js (v15) using the **App Router**
+- **Language:** TypeScript
+- **Library:** React (v19)
+- **Styling:** Tailwind CSS + PostCSS
+- **Animation:** Framer Motion
+- **Icons:** Lucide React
+
+### 🔧 Backend
+
+- **Framework:** Laravel (PHP)
 - **Authentication:** Laravel Sanctum
+- **Database:** MySQL / PostgreSQL
+
+### 🔧 Tooling
+
+- **Linting & Type Checking:** ESLint, TypeScript
+- **Package Management:** npm
 - **Deployment:** WIP
 
-## Getting Started
+## 🛠 Getting Started
 
-First, clone the repository:
+### Clone the repository
 
 ```bash
 git clone https://github.com/yourusername/chivito.git
 cd chivito
 ```
 
-### Frontend Setup
+---
+
+### 🔹 Frontend Setup
 
 Navigate to the frontend directory and install dependencies:
 
@@ -37,7 +55,9 @@ yarn dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser to see the app.
 
-### Backend Setup
+---
+
+### 🔹 Backend Setup
 
 Navigate to the backend directory and install dependencies:
 
@@ -70,6 +90,8 @@ Start the backend server:
 php artisan serve
 ```
 
+---
+
 ## 🔗 Learn More
 
 To learn more about the technologies used in this project, check out the following resources:
@@ -78,12 +100,14 @@ To learn more about the technologies used in this project, check out the followi
 - [Tailwind CSS Documentation](https://tailwindcss.com/docs)
 - [Laravel Documentation](https://laravel.com/docs)
 
+---
+
 ## 🚀 Deployment
 
-For deployment:
-- # WIP
+- WIP (Work in Progress)
+
+---
 
 ## 📌 License
 
 This project is licensed under the MIT License.
-
