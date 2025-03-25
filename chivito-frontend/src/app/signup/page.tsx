@@ -15,11 +15,38 @@ export default function Signup() {
   const [phone, setPhone] = useState("");
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
 
-  const handleSignup = () => {
-    // Simulate API call
-    setTimeout(() => {
+  const handleSignup = async () => {
+    try {
+      const formData = {
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        password,
+        phone_number: phone,
+        photo: profilePicture ? profilePicture.name : "", // or base64
+      };
+
+      const response = await fetch("http://localhost/api/createCustomer", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error("Error:", data);
+        return;
+      }
+
+      console.log("✅ User created:", data);
       router.push("/profile");
-    }, 2000);
+    } catch (error) {
+      console.error("❌ Signup failed:", error);
+    }
   };
 
   return (
@@ -63,26 +90,26 @@ export default function Signup() {
           <div className="space-y-4 text-black">
             <Input
               label="First name"
-              // value={firstName}
-              // onChange={(e) => setFirstName(e.target.value)}
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
             />
             <Input
               label="Last name"
-              // value={lastName}
-              // onChange={(e) => setLastName(e.target.value)}
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
             />
             <Input
               label="Email"
               type="email"
-              // value={email}
-              // onChange={(e) => setEmail(e.target.value)}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
             <div className="relative">
               <Input
                 label="Password"
                 type={showPassword ? "text" : "password"}
-                // value={password}
-                // onChange={(e) => setPassword(e.target.value)}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
               <button
                 type="button"
@@ -95,14 +122,13 @@ export default function Signup() {
             <Input
               label="Phone (optional)"
               type="tel"
-              // value={phone}
-              // onChange={(e) => setPhone(e.target.value)}
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
             />
           </div>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            // className="bg-purple-500 text-white py-2 px-4 rounded-sm"
             type="button"
             onClick={handleSignup}
             className="w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2.5 mt-8 rounded-lg transition-all"
