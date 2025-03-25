@@ -16,6 +16,12 @@ export default function Signup() {
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
 
   const handleSignup = async () => {
+    if (!validateForm()) {
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+      return;
+    }
+
     try {
       const formData = {
         first_name: firstName,
@@ -23,7 +29,7 @@ export default function Signup() {
         email,
         password,
         phone_number: phone,
-        photo: profilePicture ? profilePicture.name : "", // or base64
+        photo: profilePicture ? profilePicture.name : "",
       };
 
       const response = await fetch("http://localhost/api/createCustomer", {
@@ -48,6 +54,31 @@ export default function Signup() {
       console.error("❌ Signup failed:", error);
     }
   };
+
+  // Inside your component, before the return:
+  const formValid = firstName && lastName && email && password;
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [showToast, setShowToast] = useState(false);
+
+  const validateForm = () => {
+    const newErrors: { [key: string]: string } = {};
+
+    if (!firstName.trim()) newErrors.firstName = "First name is required.";
+    if (!lastName.trim()) newErrors.lastName = "Last name is required.";
+    if (!email.trim()) newErrors.email = "Email is required.";
+    if (!password.trim()) newErrors.password = "Password is required.";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  {
+    showToast && (
+      <div className="fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-md z-50 transition">
+        Please fill in all required fields.
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center px-4 sm:px-8 py-12">
@@ -92,17 +123,26 @@ export default function Signup() {
               label="First name"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
+              required
             />
+            {errors.firstName && (
+              <p className="text-sm text-red-500">{errors.firstName}</p>
+            )}
             <Input
               label="Last name"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
+              required
             />
+            {errors.lastName && (
+              <p className="text-sm text-red-500">{errors.lastName}</p>
+            )}
             <Input
               label="Email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
             />
             <div className="relative">
               <Input
@@ -110,6 +150,7 @@ export default function Signup() {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
               />
               <button
                 type="button"
@@ -130,8 +171,13 @@ export default function Signup() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             type="button"
+            disabled={!formValid}
             onClick={handleSignup}
-            className="w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2.5 mt-8 rounded-lg transition-all"
+            className={`w-full font-semibold py-2.5 mt-8 rounded-lg transition-all ${
+              formValid
+                ? "bg-purple-500 hover:bg-purple-600 text-white"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            }`}
           >
             Sign up
           </motion.button>

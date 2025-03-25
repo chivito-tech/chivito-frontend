@@ -1,8 +1,7 @@
-// import "../app/globals.css"; // Ensure this line is present
-
 interface InputProps {
   label: string;
   type?: string;
+  required?: boolean;
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
@@ -11,20 +10,32 @@ interface InputProps {
 export default function Input({
   label,
   type = "text",
-  value,
+  required = false,
+  value = "",
   onChange,
   placeholder,
 }: InputProps) {
   return (
-    <div className="flex flex-col">
-      <label className="text-gray-600">{label}</label>
+    <div className="relative w-full mt-4">
       <input
         type={type}
         value={value}
+        required={required}
         onChange={onChange}
-        placeholder={placeholder}
-        className="border p-2 rounded-sm mt-1"
+        placeholder=" "
+        className="peer w-full border border-gray-300 rounded-md px-3 pt-5 pb-2 focus:outline-none focus:ring-2 focus:ring-purple-500 transition placeholder-transparent"
       />
+      <label
+        className="absolute left-3 top-2 text-gray-500 text-sm transition-all 
+          peer-placeholder-shown:top-3.5 
+          peer-placeholder-shown:text-base 
+          peer-placeholder-shown:text-gray-400 
+          peer-focus:top-2 
+          peer-focus:text-sm 
+          peer-focus:text-purple-600"
+      >
+        {label}
+      </label>
     </div>
   );
 }
