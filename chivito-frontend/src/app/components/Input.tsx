@@ -23,7 +23,7 @@ export default function Input({
         required={required}
         onChange={onChange}
         placeholder=" "
-        className="peer w-full border border-gray-300 rounded-md px-3 pt-5 pb-2 focus:outline-none focus:ring-2 focus:ring-purple-500 transition placeholder-transparent"
+        className="peer w-full text-black border border-gray-300 rounded-md px-3 pt-5 pb-2 focus:outline-none focus:ring-2 focus:ring-purple-500 transition placeholder-transparent"
       />
       <label
         className="absolute left-3 top-2 text-gray-500 text-sm transition-all 
