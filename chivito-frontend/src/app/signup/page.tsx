@@ -64,8 +64,11 @@ export default function Signup() {
         return;
       }
 
-      console.log("✅ User created:", data);
-      router.push("/profile");
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        console.log("✅ Signup successful:", data);
+        router.push("/profile");
+      }
     } catch (error) {
       console.error("❌ Signup failed:", error);
     }
