@@ -35,7 +35,7 @@ export default function BottomNav() {
       </button>
 
       <button
-        onClick={() => handleNavigation("calendar", "/calendar")}
+        onClick={() => handleNavigation("search", "/search")}
         className="flex flex-col items-center"
       >
         <Search
@@ -55,7 +55,7 @@ export default function BottomNav() {
       </button>
 
       <button
-        onClick={() => handleNavigation("calendar", "/calendar")}
+        onClick={() => handleNavigation("bookmark", "/bookmark")}
         className="flex flex-col items-center"
       >
         <Bookmark

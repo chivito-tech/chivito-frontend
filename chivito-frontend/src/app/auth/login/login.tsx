@@ -15,8 +15,9 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState("home");
-  const formValid = email && password;
   const [error, setError] = useState("");
+
+  const formValid = email && password;
 
   const handleNavigation = (tab: string, path: string) => {
     setActiveTab(tab);
@@ -37,24 +38,24 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data?.error || "Login failed");
+        setError(data?.error || "Login failed. Please check your credentials.");
         return;
       }
 
+      setError("");
       onLogin(data); // Send real user info to parent
     } catch (err) {
-      setError("Network error. Try again.");
+      setError("Network error. Please try again.");
       console.error(err);
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center px-4 sm:px-8 py-12">
-      {/* Welcome Header */}
       <h1 className="text-3xl font-bold text-purple-600 mb-6 text-center">
         Welcome to Chivito
       </h1>
-      {/* Login Form */}
+
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -88,6 +89,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
             )}
           </button>
         </div>
+
         <motion.button
           whileHover={{ scale: formValid ? 1.05 : 1 }}
           whileTap={{ scale: 0.95 }}
@@ -100,6 +102,14 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
         >
           Login
         </motion.button>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mt-4 bg-red-100 text-red-700 px-4 py-2 rounded-md text-sm text-center">
+            {error}
+          </div>
+        )}
+
         <p className="text-sm text-center mt-4 text-gray-500">
           Don't have an account?{" "}
           <button
