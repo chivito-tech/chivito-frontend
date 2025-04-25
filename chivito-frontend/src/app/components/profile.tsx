@@ -38,7 +38,15 @@ export default function ProfileScreen({ user }: ProfileScreenProps) {
             <Pencil className="w-5 h-5 text-white" />
           </button>
         </div>
-        <h3 className="text-xl font-semibold mt-3">{user.name}</h3>
+        <h3 className="text-xl font-semibold mt-3">
+          {user.name
+            .split(" ")
+            .map(
+              (part) =>
+                part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+            )
+            .join(" ")}
+        </h3>
         <p className="text-gray-500">{user.email}</p>
       </div>
 
@@ -66,7 +74,13 @@ export default function ProfileScreen({ user }: ProfileScreenProps) {
         </ul>
       </div>
 
-      <button className="mt-6 bg-red-500 text-white px-5 py-2 rounded-lg flex items-center gap-2 shadow-md hover:bg-red-600 transition">
+      <button
+        className="mt-6 bg-red-500 text-white px-5 py-2 rounded-lg flex items-center gap-2 shadow-md hover:bg-red-600 transition"
+        onClick={() => {
+          localStorage.removeItem("token");
+          window.location.reload(); // or lift state up to clear `user`
+        }}
+      >
         <LogOut className="w-5 h-5" />
         Logout
       </button>

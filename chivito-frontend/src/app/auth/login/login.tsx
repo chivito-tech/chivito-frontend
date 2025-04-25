@@ -33,20 +33,35 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
         },
         body: JSON.stringify({ email, password }),
       });
-
+  
       const data = await response.json();
-
+  
       if (!response.ok) {
         setError(data?.error || "Login failed");
         return;
       }
-
-      onLogin(data); // Send real user info to parent
+  
+      if (!data.token || !data.data) {
+        setError("Login response missing user data or token.");
+        return;
+      }
+  
+      localStorage.setItem("token", data.token);
+  
+      const userForProfile = {
+        id: data.data.id,
+        name: `${data.data.first_name} ${data.data.last_name}`,
+        email: data.data.email,
+        photo: data.data.photo,
+      };
+  
+      onLogin(userForProfile);
     } catch (err) {
       setError("Network error. Try again.");
       console.error(err);
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center px-4 sm:px-8 py-12">
