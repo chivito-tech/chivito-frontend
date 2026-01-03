@@ -9,7 +9,7 @@ import Button from "./Button";
 import dynamic from "next/dynamic";
 
 // Client-only loaded dropdown
-const ServiceSelect = dynamic(() => import("./serviceSelect"), {
+const ServiceSelect = dynamic(() => import("./ServiceSelect"), {
   ssr: false,
 });
 
