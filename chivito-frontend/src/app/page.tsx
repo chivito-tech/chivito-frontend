@@ -16,12 +16,10 @@ type Provider = {
   city?: string | null;
   zip?: string | null;
   status: string;
+  price?: number | null;
   categories: Category[];
   // UI-only fallbacks
   image?: string;
-  rating?: number;
-  reviews?: string;
-  price?: string;
 };
 
 const API_BASE =
@@ -29,6 +27,7 @@ const API_BASE =
 
 export default function Home() {
   const [providers, setProviders] = useState<Provider[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,43 +36,51 @@ export default function Home() {
   );
 
   useEffect(() => {
-    const loadProviders = async () => {
+    const loadData = async () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`${API_BASE}/providers`, {
-          headers: { Accept: "application/json" },
-        });
-        if (!res.ok) throw new Error("Failed to load providers");
-        const data = await res.json();
+        const [providersRes, categoriesRes] = await Promise.all([
+          fetch(`${API_BASE}/providers`, { headers: { Accept: "application/json" } }),
+          fetch(`${API_BASE}/categories`, { headers: { Accept: "application/json" } }),
+        ]);
 
-        const mapped = (data as Provider[]).map((p, index) => ({
+        if (!providersRes.ok) throw new Error("Failed to load providers");
+        if (!categoriesRes.ok) throw new Error("Failed to load categories");
+
+        const providersData = await providersRes.json();
+        const categoriesData = await categoriesRes.json();
+
+        const mapped = (providersData as Provider[]).map((p) => ({
           ...p,
-          // fallback visuals for cards
           image: "/cleaning-1.jpg",
-          rating: 4.8 - index * 0.05,
-          reviews: `${(index + 1) * 120}`,
-          price: "$25+",
         }));
+
         setProviders(mapped);
+        setCategories(categoriesData as Category[]);
       } catch (err) {
         console.error(err);
-        setError("Could not load providers right now.");
+        setError("Could not load data right now.");
       } finally {
         setLoading(false);
       }
     };
 
-    loadProviders();
+    loadData();
   }, []);
 
   const categoryFilters = useMemo(() => {
     const names = new Set<string>();
+
+    // Prefer API categories if available
+    categories.forEach((c) => names.add(c.name || c.slug));
+
+    // Fallback to provider categories if none loaded yet
     providers.forEach((p) =>
       p.categories.forEach((c) => names.add(c.name || c.slug)),
     );
     return Array.from(names).slice(0, 8);
-  }, [providers]);
+  }, [providers, categories]);
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gray-50 px-4 md:px-12">
@@ -149,7 +156,9 @@ export default function Home() {
               </h3>
               <p className="text-black">
                 <span className="text-purple-600 font-semibold">
-                  {provider.price ?? "Contact for quote"}
+                  {provider.price != null && !Number.isNaN(provider.price)
+                    ? `$${provider.price.toFixed(2)}`
+                    : "Contact for quote"}
                 </span>
               </p>
 
@@ -166,24 +175,9 @@ export default function Home() {
               <div className="w-full h-px mt-2 bg-gray-200"></div>
 
               <div className="mt-2 flex flex-wrap gap-2">
-                {provider.city ? (
-                  <span className="bg-blue-200 text-blue-900 text-sm font-semibold px-1.5 py-0 rounded-full">
-                    {provider.city}
-                  </span>
-                ) : (
-                  <span className="bg-blue-100 text-blue-700 text-sm font-semibold px-1.5 py-0 rounded-full">
-                    Service area
-                  </span>
-                )}
-                {provider.status && (
-                  <span className="bg-green-100 text-green-700 text-sm font-semibold px-1.5 py-0 rounded-full">
-                    {provider.status}
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center text-gray-600 text-sm mt-2">
-                ⭐ {provider.rating ?? "4.8"} | {provider.reviews ?? "120"}{" "}
-                reviews
+                <span className="bg-blue-100 text-blue-700 text-sm font-semibold px-1.5 py-0 rounded-full">
+                  {provider.city || "Service area"}
+                </span>
               </div>
             </div>
 
@@ -237,12 +231,15 @@ export default function Home() {
             <h2 className="text-2xl font-bold text-gray-900">
               {selectedProvider.name}
             </h2>
-            <div className="flex items-center mt-2 text-gray-600 text-sm">
-              ⭐{" "}
-              <span className="ml-1 font-medium">
-                {selectedProvider.rating}
+            <div className="flex items-center mt-2 text-gray-600 text-sm gap-2 flex-wrap">
+              <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold">
+                {selectedProvider.city || "Service area"}
               </span>
-              <span className="ml-2">({selectedProvider.reviews} reviews)</span>
+              <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-semibold">
+                {selectedProvider.price != null && !Number.isNaN(selectedProvider.price)
+                  ? `$${selectedProvider.price.toFixed(2)}`
+                  : "Contact for quote"}
+              </span>
             </div>
 
             {/* Service Category */}
@@ -272,7 +269,9 @@ export default function Home() {
 
             {/* Pricing */}
             <p className="mt-4 text-xl font-semibold text-purple-700">
-              {selectedProvider.price ?? "Contact for quote"}
+              {selectedProvider.price != null && !Number.isNaN(selectedProvider.price)
+                ? `$${selectedProvider.price.toFixed(2)}`
+                : "Contact for quote"}
             </p>
 
             {/* Phone Number (Clickable) */}

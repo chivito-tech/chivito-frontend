@@ -18,8 +18,8 @@ export default function RegisterYourService() {
   const [companyName, setCompanyName] = useState("");
   const [phone, setPhone] = useState("");
   const [bio, setBio] = useState("");
-  const [city, setCity] = useState("");
-  const [zip, setZip] = useState("");
+  const [areas, setAreas] = useState<string[]>([]);
+  const [startingPrice, setStartingPrice] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -27,6 +27,16 @@ export default function RegisterYourService() {
   const [error, setError] = useState<string | null>(null);
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
+
+  const areaOptions = [
+    "North",
+    "South",
+    "East",
+    "West",
+    "Centro",
+    "Metro",
+    "Isla",
+  ];
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -62,7 +72,7 @@ export default function RegisterYourService() {
 
   const toggleCategory = (id: number) => {
     setSelectedCategories((prev) =>
-      prev.includes(id) ? prev.filter((catId) => catId !== id) : [...prev, id],
+      prev.includes(id) ? prev.filter((catId) => catId !== id) : [...prev, id]
     );
   };
 
@@ -94,8 +104,11 @@ export default function RegisterYourService() {
           company_name: companyName,
           phone,
           bio: bio || undefined,
-          city: city || undefined,
-          zip: zip || undefined,
+          city: areas.length ? areas.join(", ") : undefined,
+          price:
+            startingPrice && !Number.isNaN(parseFloat(startingPrice))
+              ? Number(parseFloat(startingPrice).toFixed(2))
+              : undefined,
           category_ids: selectedCategories,
         }),
       });
@@ -117,8 +130,8 @@ export default function RegisterYourService() {
       setCompanyName("");
       setPhone("");
       setBio("");
-      setCity("");
-      setZip("");
+      setAreas([]);
+      setStartingPrice("");
       setSelectedCategories([]);
       router.push("/");
     } catch (err) {
@@ -185,27 +198,74 @@ export default function RegisterYourService() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                City
+                Area
               </label>
-              <input
-                type="text"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2 text-black focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="San Juan"
-              />
+              <div className="mt-2 flex flex-wrap gap-2">
+                {areaOptions.map((area) => {
+                  const active = areas.includes(area);
+                  return (
+                    <button
+                      key={area}
+                      type="button"
+                      onClick={() =>
+                        setAreas((prev) => {
+                          if (area === "Isla") {
+                            return prev.includes("Isla") ? [] : ["Isla"];
+                          }
+
+                          const cleaned = prev.filter((a) => a !== "Isla");
+
+                          let updated = cleaned.includes(area)
+                            ? cleaned.filter((a) => a !== area)
+                            : [...cleaned, area];
+
+                          const nonIslaOptions = areaOptions.filter(
+                            (opt) => opt !== "Isla"
+                          );
+                          if (
+                            updated.length === nonIslaOptions.length &&
+                            nonIslaOptions.every((opt) => updated.includes(opt))
+                          ) {
+                            updated = ["Isla"];
+                          }
+
+                          return updated;
+                        })
+                      }
+                      className={`rounded-full border px-3 py-1.5 text-sm font-medium transition ${
+                        active
+                          ? "bg-purple-600 text-white border-purple-600 shadow"
+                          : "bg-white text-gray-700 border-gray-300 hover:border-purple-400"
+                      }`}
+                    >
+                      {area}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                ZIP
+                Starting price
               </label>
-              <input
-                type="text"
-                value={zip}
-                onChange={(e) => setZip(e.target.value)}
-                className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2 text-black focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="00901"
-              />
+              <div className="mt-2 flex items-center gap-2">
+                <span className="text-gray-500">$</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={startingPrice}
+                  onChange={(e) => setStartingPrice(e.target.value)}
+                  onBlur={(e) => {
+                    const val = parseFloat(e.target.value);
+                    if (!Number.isNaN(val)) {
+                      setStartingPrice(val.toFixed(2));
+                    }
+                  }}
+                  className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-black focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="25.00"
+                />
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">

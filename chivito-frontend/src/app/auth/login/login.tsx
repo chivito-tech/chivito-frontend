@@ -77,11 +77,15 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
             </p>
           </div>
 
-          <motion.div
+          <motion.form
             initial={{ y: 10, opacity: 0.9 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
             className="w-full max-w-md mx-auto bg-gray-50 border border-gray-200 p-8 rounded-xl shadow-sm"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleLogin();
+            }}
           >
             <Input
               label="Email"
@@ -112,6 +116,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
             </div>
 
             <motion.button
+              type="submit"
               whileHover={{ scale: formValid ? 1.02 : 1 }}
               whileTap={{ scale: 0.98 }}
               className={`w-full font-semibold py-3 mt-6 rounded-lg transition-all text-center ${
@@ -119,7 +124,6 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
                   ? "bg-purple-600 hover:bg-purple-700 text-white shadow-md"
                   : "bg-gray-300 text-gray-500 cursor-not-allowed"
               }`}
-              onClick={handleLogin}
             >
               Login
             </motion.button>
@@ -139,7 +143,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
                 Sign Up
               </button>
             </p>
-          </motion.div>
+          </motion.form>
         </div>
       </div>
     </div>
