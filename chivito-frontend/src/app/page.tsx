@@ -1,107 +1,103 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+type Category = {
+  id: number;
+  name: string;
+  slug: string;
+};
+
+type Provider = {
+  id: number;
+  name: string;
+  company_name: string;
+  phone: string;
+  bio?: string | null;
+  city?: string | null;
+  zip?: string | null;
+  status: string;
+  categories: Category[];
+  // UI-only fallbacks
+  image?: string;
+  rating?: number;
+  reviews?: string;
+  price?: string;
+};
+
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8002/api";
 
 export default function Home() {
-  const services = [
-    {
-      name: "Santos Daniel",
-      service: [
-        "Construction",
-        "Plumbing",
-        "Electrician",
-        "Painting",
-        "Mechanic",
-      ],
-      price: "$25",
-      rating: 4.8,
-      reviews: "8,289",
-      phone: "123-456-7890",
-      location: ["Norte", "Sur", "Metro"],
-      image: "/cleaning-1.jpg",
-      description:
-        "Experienced in multiple trades, providing top-quality service.",
-    },
-    {
-      name: "Joel Colon",
-      service: ["Painting", "Construction", "Electrician", "Detailer"],
-      price: "$20",
-      rating: 4.9,
-      phone: "123-456-7890",
+  const [providers, setProviders] = useState<Provider[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-      reviews: "6,182",
-      location: ["Norte", "Sur", "Metro", "Este"],
-      image: "/cleaning-2.jpg",
-      description:
-        "Specializes in painting and construction with a 4.9 rating.",
-    },
-    {
-      name: "Luis Colon",
-      service: ["Nah"],
-      price: "$22",
-      rating: 4.7,
-      phone: "123-456-7890",
+  const [selectedProvider, setSelectedProvider] = useState<Provider | null>(
+    null,
+  );
 
-      reviews: "7,938",
-      location: ["Sur"],
-      image: "/cleaning-3.jpg",
-      description: "Provides reliable services at an affordable rate.",
-    },
-    {
-      name: "Angel Tomas",
-      service: ["Plumber"],
-      price: "$24",
-      phone: "123-456-7890",
+  useEffect(() => {
+    const loadProviders = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(`${API_BASE}/providers`, {
+          headers: { Accept: "application/json" },
+        });
+        if (!res.ok) throw new Error("Failed to load providers");
+        const data = await res.json();
 
-      rating: 4.9,
-      location: ["Metro"],
-      reviews: "6,182",
-      image: "/cleaning-4.jpg",
-      description: "Expert plumber with years of experience.",
-    },
-  ];
+        const mapped = (data as Provider[]).map((p, index) => ({
+          ...p,
+          // fallback visuals for cards
+          image: "/cleaning-1.jpg",
+          rating: 4.8 - index * 0.05,
+          reviews: `${(index + 1) * 120}`,
+          price: "$25+",
+        }));
+        setProviders(mapped);
+      } catch (err) {
+        console.error(err);
+        setError("Could not load providers right now.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const [selectedProvider, setSelectedProvider] = useState<{
-    name: string;
-    service: string[];
-    price: string;
-    phone: string;
-    rating: number;
-    reviews: string;
-    location: string[];
-    image: string;
-    description: string;
-  } | null>(null);
+    loadProviders();
+  }, []);
+
+  const categoryFilters = useMemo(() => {
+    const names = new Set<string>();
+    providers.forEach((p) =>
+      p.categories.forEach((c) => names.add(c.name || c.slug)),
+    );
+    return Array.from(names).slice(0, 8);
+  }, [providers]);
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gray-50 px-4 md:px-12">
       <div className="flex justify-between items-center w-full max-w-5xl mt-8 mb-8 px-4 md:px-0">
-        <h3 className="text-xl font-semibold text-gray-900">Services</h3>
+        <h3 className="text-xl font-semibold text-gray-900">Categories</h3>
         <p className="text-sm text-gray-500 cursor-pointer hover:text-gray-700 transition">
           See All
         </p>
       </div>
-      <div className="grid grid-cols-4 grid-rows-2 gap-6 w-full max-w-5xl">
-        {[
-          "Mechanic",
-          "Electrician",
-          "Detailer",
-          "Painter",
-          "Plumber",
-          "Constructor",
-          "Carpenter",
-          "More",
-        ].map((service, index) => (
-          <button key={index} className="flex flex-col items-center group">
-            <div className="w-16 h-16 flex items-center justify-center bg-white rounded-full shadow-md transition-transform duration-300 group-hover:scale-105">
-              <img
-                src="/broom.png"
-                alt={service}
-                className="w-10 h-10 object-contain"
-              />
-            </div>
-            <p className="mt-2 text-sm font-medium text-black">{service}</p>
-          </button>
-        ))}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 w-full max-w-5xl">
+        {(categoryFilters.length ? categoryFilters : ["Plumber", "Electrician"])
+          .slice(0, 8)
+          .map((service, index) => (
+            <button key={index} className="flex flex-col items-center group">
+              <div className="w-16 h-16 flex items-center justify-center bg-white rounded-full shadow-md transition-transform duration-300 group-hover:scale-105">
+                <img
+                  src="/broom.png"
+                  alt={service}
+                  className="w-10 h-10 object-contain"
+                />
+              </div>
+              <p className="mt-2 text-sm font-medium text-black">{service}</p>
+            </button>
+          ))}
       </div>
       <div className="w-full h-px mt-8 bg-gray-200"></div>
       <div className="flex justify-between items-center w-full max-w-5xl mt-8 mb-3 px-4 md:px-0">
@@ -115,16 +111,10 @@ export default function Home() {
       <div className="w-full">
         <div className="flex justify-center md:justify-center mb-6 overflow-x-auto">
           <div className="flex space-x-4 px-4 md:px-0 py-2 max-w-5xl">
-            {[
-              "Mechanic",
-              "Electrician",
-              "Detailer",
-              "Painter",
-              "Plumber",
-              "Constructor",
-              "Carpenter",
-              "Detailer",
-            ].map((service, index) => (
+            {(categoryFilters.length
+              ? categoryFilters
+              : ["Plumber", "Electrician", "Painter", "Detailer"]
+            ).map((service, index) => (
               <button
                 key={index}
                 className="whitespace-nowrap rounded-full bg-white shadow-md px-6 py-2 text-sm font-medium text-gray-700 border-gray-300 transition hover:bg-gray-100 hover:shadow-lg"
@@ -138,70 +128,78 @@ export default function Home() {
 
       {/* Service Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-5xl">
-        {services.map((provider, index) => (
+        {providers.map((provider) => (
           <div
-            key={index}
+            key={provider.id}
             onClick={() => setSelectedProvider(provider)}
             className="cursor-pointer flex items-center bg-white p-4 rounded-2xl shadow-md hover:shadow-lg transition"
           >
-            {/* Image */}
-            <div className="w-24 h-24 md:w-32 md:h-32 rounded-xl overflow-hidden">
+            <div className="w-24 h-24 md:w-32 md:h-32 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
               <img
-                src={provider.image}
-                alt="pfp"
+                src={provider.image || "/cleaning-1.jpg"}
+                alt={provider.name}
                 className="w-full h-full object-cover"
               />
             </div>
 
-            {/* Service Details */}
             <div className="ml-4 flex-1">
-              <h3 className="text-black font-semibold">{provider.name}</h3>
+              <h3 className="text-black font-semibold">
+                {provider.name}
+                {provider.company_name ? ` • ${provider.company_name}` : ""}
+              </h3>
               <p className="text-black">
-                Starting at:{" "}
                 <span className="text-purple-600 font-semibold">
-                  {provider.price}
+                  {provider.price ?? "Contact for quote"}
                 </span>
               </p>
 
-              {/* Tags for Multiple Services */}
               <div className="flex flex-wrap gap-2 mt-2">
-                {provider.service.map((service, i) => (
+                {provider.categories.map((service) => (
                   <span
-                    key={i}
+                    key={service.id}
                     className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium shadow-xs"
                   >
-                    {service}
+                    {service.name}
                   </span>
                 ))}
               </div>
               <div className="w-full h-px mt-2 bg-gray-200"></div>
 
-              {/* Location Chips - Styled Differently */}
               <div className="mt-2 flex flex-wrap gap-2">
-                {provider.location.length > 3 ? (
-                  <span className="bg-red-200 text-red-800 text-sm font-semibold px-1.5 py-0 rounded-full">
-                    Isla
+                {provider.city ? (
+                  <span className="bg-blue-200 text-blue-900 text-sm font-semibold px-1.5 py-0 rounded-full">
+                    {provider.city}
                   </span>
                 ) : (
-                  provider.location.map((location, i) => (
-                    <span
-                      key={i}
-                      className="bg-blue-200 text-blue-900 text-sm font-semibold px-1.5 py-0 rounded-full"
-                    >
-                      {location}
-                    </span>
-                  ))
+                  <span className="bg-blue-100 text-blue-700 text-sm font-semibold px-1.5 py-0 rounded-full">
+                    Service area
+                  </span>
+                )}
+                {provider.status && (
+                  <span className="bg-green-100 text-green-700 text-sm font-semibold px-1.5 py-0 rounded-full">
+                    {provider.status}
+                  </span>
                 )}
               </div>
               <div className="flex items-center text-gray-600 text-sm mt-2">
-                ⭐ {provider.rating} | {provider.reviews} reviews
+                ⭐ {provider.rating ?? "4.8"} | {provider.reviews ?? "120"}{" "}
+                reviews
               </div>
             </div>
 
-            {/* Bookmark Icon */}
             <button className="ml-auto text-purple-600">📌</button>
           </div>
         ))}
+
+        {!providers.length && !loading && (
+          <div className="text-gray-600">No services yet. Be the first!</div>
+        )}
+        {loading && (
+          <div className="text-gray-500">Loading services...</div>
+        )}
+        {error && !loading && (
+          <div className="text-red-600 text-sm">{error}</div>
+        )}
       </div>
 
       {/* MODAL */}
@@ -225,7 +223,7 @@ export default function Home() {
             {/* Provider Image */}
             <div className="relative">
               <img
-                src={selectedProvider.image}
+                src={selectedProvider.image || "/cleaning-1.jpg"}
                 alt={selectedProvider.name}
                 className="w-full h-48 object-cover rounded-lg mb-4"
               />
@@ -249,37 +247,32 @@ export default function Home() {
 
             {/* Service Category */}
             <div className="mt-3 flex flex-wrap gap-2">
-              {selectedProvider.service.map((service, i) => (
+              {selectedProvider.categories.map((service) => (
                 <span
-                  key={i}
+                  key={service.id}
                   className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium"
                 >
-                  {service}
+                  {service.name}
                 </span>
               ))}
             </div>
 
             {/* Location */}
             <div className="mt-3 flex flex-wrap gap-2">
-              {selectedProvider.location.length > 3 ? (
-                <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
-                  Isla
+              {selectedProvider.city ? (
+                <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
+                  {selectedProvider.city}
                 </span>
               ) : (
-                selectedProvider.location.map((location, i) => (
-                  <span
-                    key={i}
-                    className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium"
-                  >
-                    {location}
-                  </span>
-                ))
+                <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
+                  Service area
+                </span>
               )}
             </div>
 
             {/* Pricing */}
             <p className="mt-4 text-xl font-semibold text-purple-700">
-              {selectedProvider.price}
+              {selectedProvider.price ?? "Contact for quote"}
             </p>
 
             {/* Phone Number (Clickable) */}
@@ -297,7 +290,7 @@ export default function Home() {
             <div className="mt-4">
               <h3 className="text-lg font-semibold text-gray-900">About Me</h3>
               <p className="text-gray-600 mt-1">
-                {selectedProvider.description}
+                {selectedProvider.bio ?? "No description provided."}
               </p>
             </div>
 

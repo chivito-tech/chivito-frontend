@@ -8,6 +8,7 @@ import {
   Moon,
   Pencil,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface User {
   id: string;
@@ -18,9 +19,19 @@ interface User {
 
 interface ProfileScreenProps {
   user: User;
+  onLogout?: () => void;
 }
 
-export default function ProfileScreen({ user }: ProfileScreenProps) {
+export default function ProfileScreen({ user, onLogout }: ProfileScreenProps) {
+  const router = useRouter();
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    if (onLogout) onLogout();
+    router.push("/");
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center px-4 sm:px-8">
       <div className="text-3xl font-bold text-purple-600 mb-6 mt-6 text-center">
@@ -66,7 +77,10 @@ export default function ProfileScreen({ user }: ProfileScreenProps) {
         </ul>
       </div>
 
-      <button className="mt-6 bg-red-500 text-white px-5 py-2 rounded-lg flex items-center gap-2 shadow-md hover:bg-red-600 transition">
+      <button
+        onClick={handleLogout}
+        className="mt-6 bg-red-500 text-white px-5 py-2 rounded-lg flex items-center gap-2 shadow-md hover:bg-red-600 transition"
+      >
         <LogOut className="w-5 h-5" />
         Logout
       </button>

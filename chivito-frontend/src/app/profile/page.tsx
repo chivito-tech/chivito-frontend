@@ -1,28 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import LoginScreen from "../auth/login/login";
-import ProfileScreen from "../components/profile";
+import ProfileScreen from "@/app/components/profile";
 
-interface User {
-  id: string;
-  name: string;
-}
+const mockUser = {
+  id: "1",
+  name: "Jane Doe",
+  email: "jane.doe@example.com",
+  photo: "/user-avatar.jpg",
+};
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<User | null>(null);
-
-  return (
-    <div className="min-h-screen bg-gray-100">
-      {user ? (
-        <ProfileScreen user={user} />
-      ) : (
-        <LoginScreen
-          onLogin={(userData: User) => {
-            setUser(userData);
-          }}
-        />
-      )}
-    </div>
-  );
+  return <ProfileScreen user={mockUser} />;
 }

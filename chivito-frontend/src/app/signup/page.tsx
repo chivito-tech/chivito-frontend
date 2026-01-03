@@ -5,6 +5,9 @@ import { Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import Input from "@/app/components/Input";
 
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8002/api";
+
 export default function Signup() {
   const router = useRouter();
   const [firstName, setFirstName] = useState("");
@@ -48,7 +51,7 @@ export default function Signup() {
         photo: profilePicture ? profilePicture.name : "",
       };
 
-      const response = await fetch("http://localhost/api/createCustomer", {
+      const response = await fetch(`${API_BASE}/createCustomer`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
