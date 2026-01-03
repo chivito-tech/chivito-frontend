@@ -67,15 +67,9 @@ export default function TopBar() {
       </div>
 
       {/* Mobile Search Input */}
+      {/* Mobile Search Dropdown */}
       <div className="md:hidden px-4 py-2">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search"
-            className="w-full rounded-md border border-gray-300 px-4 py-2 pr-10 text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-          />
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-        </div>
+        <ServiceSelect onChange={(value) => setSelected(value)} />
       </div>
 
       {/* Mobile Dropdown */}
@@ -107,7 +101,9 @@ export default function TopBar() {
       {/* Login Modal */}
       {showLogin && (
         <Modal isOpen={showLogin} onClose={() => setShowLogin(false)}>
-          <Login onLogin={undefined} />
+          <Login
+            onLogin={(userData) => console.log("User logged in:", userData)}
+          />
         </Modal>
       )}
     </header>

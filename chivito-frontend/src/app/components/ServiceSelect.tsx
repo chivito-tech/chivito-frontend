@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Select from "react-select";
+import Select, { components } from "react-select";
+import { motion } from "framer-motion";
 
 const serviceOptions = [
   { value: "Mechanic", label: "Mechanic" },
@@ -12,6 +13,20 @@ const serviceOptions = [
   { value: "Constructor", label: "Constructor" },
   { value: "Carpenter", label: "Carpenter" },
 ];
+
+// Custom animated menu wrapper
+const AnimatedMenu = (props: any) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -5 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -5 }}
+      transition={{ duration: 0.2 }}
+    >
+      <components.Menu {...props} />
+    </motion.div>
+  );
+};
 
 export default function ServiceSelect({
   onChange,
@@ -31,6 +46,7 @@ export default function ServiceSelect({
       isMulti
       placeholder="Search services..."
       onChange={onChange}
+      components={{ Menu: AnimatedMenu }}
       className="w-full"
       classNames={{
         control: () =>
@@ -40,22 +56,22 @@ export default function ServiceSelect({
       styles={{
         option: (provided, state) => ({
           ...provided,
-          color: state.isSelected ? "#7e22ce" : "#1f2937", // purple for selected, gray-800 otherwise
+          color: state.isSelected ? "#7e22ce" : "#1f2937",
           backgroundColor: state.isFocused
             ? "rgba(126, 34, 206, 0.1)"
             : "white",
         }),
         multiValueLabel: (styles) => ({
           ...styles,
-          color: "#7e22ce", // purple text inside selected tags
+          color: "#7e22ce",
         }),
         input: (styles) => ({
           ...styles,
-          color: "#1f2937", // gray-800 text when typing
+          color: "#1f2937",
         }),
         placeholder: (styles) => ({
           ...styles,
-          color: "#9ca3af", // gray-400 for placeholder
+          color: "#9ca3af",
         }),
       }}
     />
