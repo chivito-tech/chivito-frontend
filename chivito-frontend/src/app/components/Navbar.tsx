@@ -16,7 +16,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [activeTab, setActiveTab] = useState("home");
-  const [selected, setSelected] = useState<string[]>([]);
+  const [selected, setSelected] = useState<number[]>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const router = useRouter();
   const pathname = usePathname();
@@ -166,7 +166,15 @@ export default function Navbar() {
 
         {/* Center: Service search (desktop) */}
         <div className="hidden md:flex w-1/2">
-          <ServiceSelect onChange={(value: string[]) => setSelected(value)} />
+          <ServiceSelect
+            onChange={(value: any) => {
+              const ids = Array.isArray(value) ? value.map((v: any) => v.value) : [];
+              setSelected(ids);
+              window.dispatchEvent(
+                new CustomEvent("service-filter", { detail: { ids } })
+              );
+            }}
+          />
         </div>
 
         {/* Right: Actions */}
@@ -178,7 +186,15 @@ export default function Navbar() {
 
       {/* Mobile Search */}
       <div className="md:hidden px-4 py-2">
-        <ServiceSelect onChange={(value: string[]) => setSelected(value)} />
+        <ServiceSelect
+          onChange={(value: any) => {
+            const ids = Array.isArray(value) ? value.map((v: any) => v.value) : [];
+            setSelected(ids);
+            window.dispatchEvent(
+              new CustomEvent("service-filter", { detail: { ids } })
+            );
+          }}
+        />
       </div>
 
       {/* Mobile Dropdown */}

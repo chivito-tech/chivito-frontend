@@ -17,6 +17,9 @@ type Provider = {
   zip?: string | null;
   status: string;
   price?: number | null;
+  photo1?: string | null;
+  photo2?: string | null;
+  photo3?: string | null;
   categories: Category[];
   // UI-only fallbacks
   image?: string;
@@ -24,12 +27,20 @@ type Provider = {
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8002/api";
+const API_ORIGIN = API_BASE.replace(/\/api\/?$/, "");
+
+const buildPhotoUrl = (path?: string | null) => {
+  if (!path) return null;
+  if (path.startsWith("http")) return path;
+  return `${API_ORIGIN}${path.startsWith("/") ? "" : "/"}${path}`;
+};
 
 export default function Home() {
   const [providers, setProviders] = useState<Provider[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [filterIds, setFilterIds] = useState<number[]>([]);
 
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(
     null,
@@ -51,10 +62,19 @@ export default function Home() {
         const providersData = await providersRes.json();
         const categoriesData = await categoriesRes.json();
 
-        const mapped = (providersData as Provider[]).map((p) => ({
-          ...p,
-          image: "/cleaning-1.jpg",
-        }));
+        const mapped = (providersData as Provider[]).map((p) => {
+          const photo1 = buildPhotoUrl(p.photo1);
+          const photo2 = buildPhotoUrl(p.photo2);
+          const photo3 = buildPhotoUrl(p.photo3);
+
+          return {
+            ...p,
+            photo1,
+            photo2,
+            photo3,
+            image: photo1 || "/cleaning-1.jpg",
+          };
+        });
 
         setProviders(mapped);
         setCategories(categoriesData as Category[]);
@@ -81,6 +101,23 @@ export default function Home() {
     );
     return Array.from(names).slice(0, 8);
   }, [providers, categories]);
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<{ ids?: number[] }>).detail;
+      setFilterIds(detail?.ids ?? []);
+    };
+
+    window.addEventListener("service-filter", handler as EventListener);
+    return () => window.removeEventListener("service-filter", handler as EventListener);
+  }, []);
+
+  const visibleProviders = useMemo(() => {
+    if (!filterIds.length) return providers;
+    return providers.filter((p) =>
+      p.categories.some((c) => filterIds.includes(c.id))
+    );
+  }, [providers, filterIds]);
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gray-50 px-4 md:px-12">
@@ -135,7 +172,7 @@ export default function Home() {
 
       {/* Service Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-5xl">
-        {providers.map((provider) => (
+        {visibleProviders.map((provider) => (
           <div
             key={provider.id}
             onClick={() => setSelectedProvider(provider)}
@@ -143,7 +180,7 @@ export default function Home() {
           >
             <div className="w-24 h-24 md:w-32 md:h-32 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
               <img
-                src={provider.image || "/cleaning-1.jpg"}
+                src={provider.photo1 || provider.image || "/cleaning-1.jpg"}
                 alt={provider.name}
                 className="w-full h-full object-cover"
               />
@@ -217,7 +254,11 @@ export default function Home() {
             {/* Provider Image */}
             <div className="relative">
               <img
-                src={selectedProvider.image || "/cleaning-1.jpg"}
+                src={
+                  selectedProvider.photo1 ||
+                  selectedProvider.image ||
+                  "/cleaning-1.jpg"
+                }
                 alt={selectedProvider.name}
                 className="w-full h-48 object-cover rounded-lg mb-4"
               />
@@ -293,15 +334,31 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Photos & Videos Placeholder */}
+            {/* Photos */}
             <div className="mt-6">
               <h3 className="text-lg font-semibold text-gray-900">
-                Photos & Videos
+                Photos
               </h3>
               <div className="flex gap-3 mt-2">
-                <div className="w-1/3 h-20 bg-gray-200 rounded-lg"></div>
-                <div className="w-1/3 h-20 bg-gray-200 rounded-lg"></div>
-                <div className="w-1/3 h-20 bg-gray-200 rounded-lg"></div>
+                {[selectedProvider.photo1, selectedProvider.photo2, selectedProvider.photo3]
+                  .filter(Boolean)
+                  .map((photo, idx) => (
+                    <img
+                      key={idx}
+                      src={photo as string}
+                      alt={`Photo ${idx + 1}`}
+                      className="w-1/3 h-20 object-cover rounded-lg"
+                    />
+                  ))}
+                {[selectedProvider.photo1, selectedProvider.photo2, selectedProvider.photo3].every(
+                  (p) => !p
+                ) && (
+                  <div className="flex gap-3 w-full">
+                    <div className="w-1/3 h-20 bg-gray-200 rounded-lg"></div>
+                    <div className="w-1/3 h-20 bg-gray-200 rounded-lg"></div>
+                    <div className="w-1/3 h-20 bg-gray-200 rounded-lg"></div>
+                  </div>
+                )}
               </div>
             </div>
 

@@ -22,6 +22,7 @@ export default function RegisterYourService() {
   const [startingPrice, setStartingPrice] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+  const [photos, setPhotos] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -93,24 +94,29 @@ export default function RegisterYourService() {
 
     setIsSubmitting(true);
     try {
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("company_name", companyName);
+      formData.append("phone", phone);
+      if (bio) formData.append("bio", bio);
+      if (areas.length) formData.append("city", areas.join(", "));
+      if (startingPrice && !Number.isNaN(parseFloat(startingPrice))) {
+        formData.append(
+          "price",
+          Number(parseFloat(startingPrice).toFixed(2)).toString()
+        );
+      }
+      selectedCategories.forEach((id) =>
+        formData.append("category_ids[]", id.toString())
+      );
+      photos.slice(0, 3).forEach((file) => formData.append("photos[]", file));
+
       const res = await fetch(`${API_BASE}/providers`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify({
-          name,
-          company_name: companyName,
-          phone,
-          bio: bio || undefined,
-          city: areas.length ? areas.join(", ") : undefined,
-          price:
-            startingPrice && !Number.isNaN(parseFloat(startingPrice))
-              ? Number(parseFloat(startingPrice).toFixed(2))
-              : undefined,
-          category_ids: selectedCategories,
-        }),
+        body: formData,
       });
 
       const data = await res.json();
@@ -133,6 +139,7 @@ export default function RegisterYourService() {
       setAreas([]);
       setStartingPrice("");
       setSelectedCategories([]);
+      setPhotos([]);
       router.push("/");
     } catch (err) {
       console.error(err);
@@ -278,6 +285,26 @@ export default function RegisterYourService() {
                 className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2 text-black focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="Tell customers what you do best."
               />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Photos (up to 3, optional)
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || []).slice(0, 3);
+                  setPhotos(files);
+                }}
+                className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2 text-black focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+              {photos.length > 0 && (
+                <p className="text-xs text-gray-500 mt-1">
+                  {photos.length} file(s) selected
+                </p>
+              )}
             </div>
           </div>
 

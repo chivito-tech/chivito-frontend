@@ -4,15 +4,10 @@ import { useEffect, useState } from "react";
 import Select, { components } from "react-select";
 import { motion } from "framer-motion";
 
-const serviceOptions = [
-  { value: "Mechanic", label: "Mechanic" },
-  { value: "Electrician", label: "Electrician" },
-  { value: "Detailer", label: "Detailer" },
-  { value: "Painter", label: "Painter" },
-  { value: "Plumber", label: "Plumber" },
-  { value: "Constructor", label: "Constructor" },
-  { value: "Carpenter", label: "Carpenter" },
-];
+type CategoryOption = { value: number; label: string };
+
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8002/api";
 
 // Custom animated menu wrapper
 const AnimatedMenu = (props: any) => {
@@ -34,17 +29,49 @@ export default function ServiceSelect({
   onChange: (value: any) => void;
 }) {
   const [mounted, setMounted] = useState(false);
+  const [options, setOptions] = useState<CategoryOption[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(`${API_BASE}/categories`, {
+          headers: { Accept: "application/json" },
+        });
+        if (!res.ok) throw new Error("Failed to load categories");
+        const data = await res.json();
+        const mapped: CategoryOption[] = (data || []).map((c: any) => ({
+          value: c.id,
+          label: c.name ?? c.slug,
+        }));
+        setOptions(mapped);
+      } catch (err) {
+        console.error(err);
+        setError("Could not load categories");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCategories();
   }, []);
 
   if (!mounted) return null;
 
   return (
     <Select
-      options={serviceOptions}
+      options={options}
       isMulti
-      placeholder="Search services..."
+      placeholder={
+        loading ? "Loading categories..." : error || "Search services..."
+      }
       onChange={onChange}
       components={{ Menu: AnimatedMenu }}
       className="w-full"
