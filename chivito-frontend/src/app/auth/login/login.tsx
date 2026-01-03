@@ -17,13 +17,11 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [activeTab, setActiveTab] = useState("home");
   const [error, setError] = useState("");
 
   const formValid = email && password;
 
   const handleNavigation = (tab: string, path: string) => {
-    setActiveTab(tab);
     router.push(path);
   };
 

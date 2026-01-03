@@ -28,6 +28,7 @@ export default function ProfileScreen({ user, onLogout }: ProfileScreenProps) {
   const handleLogout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
+    window.dispatchEvent(new Event("auth-change"));
     if (onLogout) onLogout();
     router.push("/");
   };

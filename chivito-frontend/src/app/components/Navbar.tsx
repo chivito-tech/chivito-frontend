@@ -4,7 +4,7 @@ import { Bookmark, Menu, User, X, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 import Modal from "@/app/components/Modal";
 import Login from "../auth/login/login";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Button from "./Button";
 import dynamic from "next/dynamic";
 
@@ -19,23 +19,46 @@ export default function Navbar() {
   const [selected, setSelected] = useState<string[]>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    const stored = localStorage.getItem("user");
-    if (stored) {
-      try {
-        setCurrentUser(JSON.parse(stored));
-      } catch {
+    const syncUser = () => {
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        try {
+          setCurrentUser(JSON.parse(stored));
+        } catch {
+          setCurrentUser(null);
+        }
+      } else {
         setCurrentUser(null);
       }
-    }
+    };
+
+    syncUser();
+    const handleAuthChange = () => syncUser();
+
+    window.addEventListener("storage", handleAuthChange);
+    window.addEventListener("auth-change", handleAuthChange as EventListener);
+
+    return () => {
+      window.removeEventListener("storage", handleAuthChange);
+      window.removeEventListener("auth-change", handleAuthChange as EventListener);
+    };
   }, []);
+
+  useEffect(() => {
+    if (pathname === "/login") {
+      setShowLogin(false);
+    }
+  }, [pathname]);
 
   const requireAuth = (callback: () => void) => {
     if (currentUser) {
       callback();
     } else {
-      setShowLogin(true);
+      setShowLogin(false);
+      router.push("/login");
     }
   };
 
@@ -72,7 +95,10 @@ export default function Navbar() {
         <div className="hidden md:flex gap-2 items-center">
           <Button
             variant="outline"
-            onClick={() => setShowLogin(true)}
+            onClick={() => {
+              setShowLogin(false);
+              router.push("/login");
+            }}
             aria-label="Log in"
           >
             <User className="w-4 h-4 mr-1" />
@@ -168,7 +194,10 @@ export default function Navbar() {
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setShowLogin(true)}
+                onClick={() => {
+                  setShowLogin(false);
+                  router.push("/login");
+                }}
                 className="w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2.5 mt-2 rounded-lg transition-all"
               >
                 Log in
@@ -218,12 +247,13 @@ export default function Navbar() {
       )}
 
       {/* Login Modal (kept as-is, but showLogin is not wired to a button here) */}
-      {showLogin && (
+      {showLogin && pathname !== "/login" && (
         <Modal isOpen={showLogin} onClose={() => setShowLogin(false)}>
           <Login
             onLogin={(userData) => {
               setCurrentUser(userData);
               localStorage.setItem("user", JSON.stringify(userData));
+              window.dispatchEvent(new Event("auth-change"));
               setShowLogin(false);
             }}
           />
