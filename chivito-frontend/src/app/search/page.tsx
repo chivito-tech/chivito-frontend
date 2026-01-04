@@ -39,6 +39,8 @@ export default function SearchPage() {
   const [error, setError] = useState<string | null>(null);
   const [filterIds, setFilterIds] = useState<number[]>([]);
   const router = useRouter();
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
 
   const categoryFilters = useMemo(() => {
     const map = new Map<number, string>();
@@ -122,6 +124,16 @@ export default function SearchPage() {
     );
   }, [sortedResults, filterIds]);
 
+  const pagedResults = useMemo(
+    () => visibleResults.slice(0, page * pageSize),
+    [visibleResults, page]
+  );
+
+  useEffect(() => {
+    // Reset pagination when filters/sort change
+    setPage(1);
+  }, [filterIds, sort, results.length]);
+
   return (
     <div className="min-h-screen px-4 py-6 bg-gray-50">
       <div className="flex justify-between items-center mb-4">
@@ -189,7 +201,7 @@ export default function SearchPage() {
       {error && !loading && <div className="text-red-600 text-sm">{error}</div>}
 
       <AnimatePresence>
-        {visibleResults.map((provider) => (
+        {pagedResults.map((provider) => (
           <motion.div
             key={provider.id}
             initial={{ opacity: 0, y: 10 }}
@@ -239,6 +251,16 @@ export default function SearchPage() {
           </motion.div>
         ))}
       </AnimatePresence>
+      {pagedResults.length < visibleResults.length && (
+        <div className="flex justify-center mt-4">
+          <button
+            onClick={() => setPage((p) => p + 1)}
+            className="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700"
+          >
+            Load more
+          </button>
+        </div>
+      )}
     </div>
   );
 }
