@@ -18,6 +18,7 @@ export default function Navbar() {
   const [activeTab, setActiveTab] = useState("home");
   const [selected, setSelected] = useState<number[]>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -91,6 +92,15 @@ export default function Navbar() {
     });
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    setCurrentUser(null);
+    window.dispatchEvent(new Event("auth-change"));
+    setShowProfileMenu(false);
+    router.push("/");
+  };
+
   const Brand = () => (
     <div className="flex flex-col leading-tight">
       <span className="text-sm text-gray-400">Welcome to Chivito 👋</span>
@@ -101,7 +111,7 @@ export default function Navbar() {
   const DesktopActions = () => {
     if (!currentUser) {
       return (
-        <div className="hidden md:flex gap-2 items-center">
+        <div className="hidden md:flex gap-2 items-center ml-auto">
           <Button
             variant="outline"
             onClick={() => {
@@ -126,16 +136,7 @@ export default function Navbar() {
     }
 
     return (
-      <div className="hidden md:flex gap-2 items-center">
-        <Button
-          variant="outline"
-          onClick={() => handleNavigation("profile", "/profile")}
-          aria-label="Go to profile"
-        >
-          <User className="w-4 h-4 mr-1" />
-          Profile
-        </Button>
-
+      <div className="hidden md:flex gap-2 items-center ml-auto relative">
         <Button
           variant="outline"
           onClick={handleBookmarks}
@@ -153,6 +154,36 @@ export default function Navbar() {
           <Plus className="w-4 h-4 mr-1" />
           Add Service
         </Button>
+
+        <div className="relative">
+          <Button
+            variant="outline"
+            onClick={() => setShowProfileMenu((prev) => !prev)}
+            aria-label="Profile menu"
+          >
+            <User className="w-4 h-4 mr-1" />
+            Profile
+          </Button>
+          {showProfileMenu && (
+            <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+              <button
+                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                onClick={() => {
+                  setShowProfileMenu(false);
+                  handleNavigation("profile", "/profile");
+                }}
+              >
+                Profile
+              </button>
+              <button
+                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                onClick={handleLogout}
+              >
+                Log out
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     );
   };
