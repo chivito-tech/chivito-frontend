@@ -139,32 +139,36 @@ export default function Home() {
           )}
         </div>
         <div className="flex space-x-3 overflow-x-auto px-1 py-3">
-          {categoryList.slice(0, Math.max(categoryList.length, 8)).map((cat) => {
-            const active = filterIds.includes(cat.id);
-            return (
-              <button
-                key={cat.id}
-                onClick={() => {
-                  setFilterIds((prev) => {
-                    const next = prev.includes(cat.id)
-                      ? prev.filter((id) => id !== cat.id)
-                      : [...prev, cat.id];
-                    window.dispatchEvent(
-                      new CustomEvent("service-filter", { detail: { ids: next } })
-                    );
-                    return next;
-                  });
-                }}
-                className={`whitespace-nowrap rounded-full px-5 py-2 text-sm font-medium border transition hover:bg-gray-100 hover:shadow-lg ${
-                  active
-                    ? "bg-purple-600 text-white border-purple-600 shadow-md"
-                    : "bg-white text-gray-700 border-gray-200"
-                }`}
-              >
-                {cat.name}
-              </button>
-            );
-          })}
+          {categoryList
+            .slice(0, Math.max(categoryList.length, 8))
+            .map((cat) => {
+              const active = filterIds.includes(cat.id);
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => {
+                    setFilterIds((prev) => {
+                      const next = prev.includes(cat.id)
+                        ? prev.filter((id) => id !== cat.id)
+                        : [...prev, cat.id];
+                      window.dispatchEvent(
+                        new CustomEvent("service-filter", {
+                          detail: { ids: next },
+                        })
+                      );
+                      return next;
+                    });
+                  }}
+                  className={`whitespace-nowrap rounded-full px-5 py-2 text-sm font-medium border transition hover:bg-gray-100 hover:shadow-lg ${
+                    active
+                      ? "bg-purple-600 text-white border-purple-600 shadow-md"
+                      : "bg-white text-gray-700 border-gray-200"
+                  }`}
+                >
+                  {cat.name}
+                </button>
+              );
+            })}
         </div>
       </div>
 
