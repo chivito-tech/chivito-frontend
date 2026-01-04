@@ -43,7 +43,7 @@ export default function Home() {
   const [filterIds, setFilterIds] = useState<number[]>([]);
 
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(
-    null,
+    null
   );
 
   useEffect(() => {
@@ -52,8 +52,12 @@ export default function Home() {
       setError(null);
       try {
         const [providersRes, categoriesRes] = await Promise.all([
-          fetch(`${API_BASE}/providers`, { headers: { Accept: "application/json" } }),
-          fetch(`${API_BASE}/categories`, { headers: { Accept: "application/json" } }),
+          fetch(`${API_BASE}/providers`, {
+            headers: { Accept: "application/json" },
+          }),
+          fetch(`${API_BASE}/categories`, {
+            headers: { Accept: "application/json" },
+          }),
         ]);
 
         if (!providersRes.ok) throw new Error("Failed to load providers");
@@ -89,17 +93,17 @@ export default function Home() {
     loadData();
   }, []);
 
-  const categoryFilters = useMemo(() => {
-    const names = new Set<string>();
-
-    // Prefer API categories if available
-    categories.forEach((c) => names.add(c.name || c.slug));
-
-    // Fallback to provider categories if none loaded yet
+  const categoryList = useMemo(() => {
+    const map = new Map<number, string>();
+    categories.forEach((c) => map.set(c.id, c.name || c.slug));
     providers.forEach((p) =>
-      p.categories.forEach((c) => names.add(c.name || c.slug)),
+      p.categories.forEach((c) => {
+        if (!map.has(c.id)) {
+          map.set(c.id, c.name || c.slug);
+        }
+      })
     );
-    return Array.from(names).slice(0, 8);
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
   }, [providers, categories]);
 
   useEffect(() => {
@@ -109,7 +113,8 @@ export default function Home() {
     };
 
     window.addEventListener("service-filter", handler as EventListener);
-    return () => window.removeEventListener("service-filter", handler as EventListener);
+    return () =>
+      window.removeEventListener("service-filter", handler as EventListener);
   }, []);
 
   const visibleProviders = useMemo(() => {
@@ -121,52 +126,45 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gray-50 px-4 md:px-12">
-      <div className="flex justify-between items-center w-full max-w-5xl mt-8 mb-8 px-4 md:px-0">
-        <h3 className="text-xl font-semibold text-gray-900">Categories</h3>
-        <p className="text-sm text-gray-500 cursor-pointer hover:text-gray-700 transition">
-          See All
-        </p>
-      </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 w-full max-w-5xl">
-        {(categoryFilters.length ? categoryFilters : ["Plumber", "Electrician"])
-          .slice(0, 8)
-          .map((service, index) => (
-            <button key={index} className="flex flex-col items-center group">
-              <div className="w-16 h-16 flex items-center justify-center bg-white rounded-full shadow-md transition-transform duration-300 group-hover:scale-105">
-                <img
-                  src="/broom.png"
-                  alt={service}
-                  className="w-10 h-10 object-contain"
-                />
-              </div>
-              <p className="mt-2 text-sm font-medium text-black">{service}</p>
-            </button>
-          ))}
-      </div>
-      <div className="w-full h-px mt-8 bg-gray-200"></div>
       <div className="flex justify-between items-center w-full max-w-5xl mt-8 mb-3 px-4 md:px-0">
         <h3 className="text-xl font-semibold text-gray-900">
           Most Popular Services
         </h3>
-        <p className="text-sm text-gray-500 cursor-pointer hover:text-gray-700 transition">
-          See All
-        </p>
       </div>
-      <div className="w-full">
-        <div className="flex justify-center md:justify-center mb-6 overflow-x-auto">
-          <div className="flex space-x-4 px-4 md:px-0 py-2 max-w-5xl">
-            {(categoryFilters.length
-              ? categoryFilters
-              : ["Plumber", "Electrician", "Painter", "Detailer"]
-            ).map((service, index) => (
+      <div className="w-full max-w-5xl mb-6">
+        <div className="flex items-center justify-between px-1">
+          <h4 className="text-sm font-semibold text-gray-700">Categories</h4>
+          {categoryList.length > 8 && (
+            <span className="text-xs text-gray-500">Scroll to see more</span>
+          )}
+        </div>
+        <div className="flex space-x-3 overflow-x-auto px-1 py-3">
+          {categoryList.slice(0, Math.max(categoryList.length, 8)).map((cat) => {
+            const active = filterIds.includes(cat.id);
+            return (
               <button
-                key={index}
-                className="whitespace-nowrap rounded-full bg-white shadow-md px-6 py-2 text-sm font-medium text-gray-700 border-gray-300 transition hover:bg-gray-100 hover:shadow-lg"
+                key={cat.id}
+                onClick={() => {
+                  setFilterIds((prev) => {
+                    const next = prev.includes(cat.id)
+                      ? prev.filter((id) => id !== cat.id)
+                      : [...prev, cat.id];
+                    window.dispatchEvent(
+                      new CustomEvent("service-filter", { detail: { ids: next } })
+                    );
+                    return next;
+                  });
+                }}
+                className={`whitespace-nowrap rounded-full px-5 py-2 text-sm font-medium border transition hover:bg-gray-100 hover:shadow-lg ${
+                  active
+                    ? "bg-purple-600 text-white border-purple-600 shadow-md"
+                    : "bg-white text-gray-700 border-gray-200"
+                }`}
               >
-                {service}
+                {cat.name}
               </button>
-            ))}
-          </div>
+            );
+          })}
         </div>
       </div>
 
@@ -225,9 +223,7 @@ export default function Home() {
         {!providers.length && !loading && (
           <div className="text-gray-600">No services yet. Be the first!</div>
         )}
-        {loading && (
-          <div className="text-gray-500">Loading services...</div>
-        )}
+        {loading && <div className="text-gray-500">Loading services...</div>}
         {error && !loading && (
           <div className="text-red-600 text-sm">{error}</div>
         )}
@@ -277,7 +273,8 @@ export default function Home() {
                 {selectedProvider.city || "Service area"}
               </span>
               <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-semibold">
-                {selectedProvider.price != null && !Number.isNaN(selectedProvider.price)
+                {selectedProvider.price != null &&
+                !Number.isNaN(selectedProvider.price)
                   ? `$${selectedProvider.price.toFixed(2)}`
                   : "Contact for quote"}
               </span>
@@ -310,7 +307,8 @@ export default function Home() {
 
             {/* Pricing */}
             <p className="mt-4 text-xl font-semibold text-purple-700">
-              {selectedProvider.price != null && !Number.isNaN(selectedProvider.price)
+              {selectedProvider.price != null &&
+              !Number.isNaN(selectedProvider.price)
                 ? `$${selectedProvider.price.toFixed(2)}`
                 : "Contact for quote"}
             </p>
@@ -336,11 +334,13 @@ export default function Home() {
 
             {/* Photos */}
             <div className="mt-6">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Photos
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900">Photos</h3>
               <div className="flex gap-3 mt-2">
-                {[selectedProvider.photo1, selectedProvider.photo2, selectedProvider.photo3]
+                {[
+                  selectedProvider.photo1,
+                  selectedProvider.photo2,
+                  selectedProvider.photo3,
+                ]
                   .filter(Boolean)
                   .map((photo, idx) => (
                     <img
@@ -350,9 +350,11 @@ export default function Home() {
                       className="w-1/3 h-20 object-cover rounded-lg"
                     />
                   ))}
-                {[selectedProvider.photo1, selectedProvider.photo2, selectedProvider.photo3].every(
-                  (p) => !p
-                ) && (
+                {[
+                  selectedProvider.photo1,
+                  selectedProvider.photo2,
+                  selectedProvider.photo3,
+                ].every((p) => !p) && (
                   <div className="flex gap-3 w-full">
                     <div className="w-1/3 h-20 bg-gray-200 rounded-lg"></div>
                     <div className="w-1/3 h-20 bg-gray-200 rounded-lg"></div>

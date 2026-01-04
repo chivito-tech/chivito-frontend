@@ -25,8 +25,10 @@ const AnimatedMenu = (props: any) => {
 
 export default function ServiceSelect({
   onChange,
+  selectedIds,
 }: {
   onChange: (value: any) => void;
+  selectedIds?: number[];
 }) {
   const [mounted, setMounted] = useState(false);
   const [options, setOptions] = useState<CategoryOption[]>([]);
@@ -67,6 +69,9 @@ export default function ServiceSelect({
 
   return (
     <Select
+      value={
+        options.filter((opt) => selectedIds?.includes(opt.value)) ?? undefined
+      }
       options={options}
       isMulti
       placeholder={

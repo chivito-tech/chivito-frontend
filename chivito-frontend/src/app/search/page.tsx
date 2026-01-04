@@ -32,6 +32,14 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const categoryFilters = useMemo(() => {
+    const names = new Set<string>();
+    results.forEach((p) =>
+      p.categories.forEach((c) => names.add(c.name || c.slug)),
+    );
+    return Array.from(names).slice(0, 8);
+  }, [results]);
+
   useEffect(() => {
     const load = async () => {
       setLoading(true);
@@ -102,6 +110,31 @@ export default function SearchPage() {
             <option key={option}>{option}</option>
           ))}
         </select>
+      </div>
+
+      <div className="flex justify-between items-center w-full max-w-5xl mt-6 mb-4">
+        <h3 className="text-lg font-semibold text-gray-900">Categories</h3>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full max-w-5xl mb-6">
+        {(categoryFilters.length ? categoryFilters : ["Plumber", "Electrician"])
+          .slice(0, 8)
+          .map((service, index) => (
+            <div
+              key={index}
+              className="flex flex-col items-center group bg-white rounded-xl shadow-sm p-3"
+            >
+              <div className="w-14 h-14 flex items-center justify-center bg-gray-50 rounded-full shadow-md transition-transform duration-300 group-hover:scale-105">
+                <img
+                  src="/broom.png"
+                  alt={service}
+                  className="w-9 h-9 object-contain"
+                />
+              </div>
+              <p className="mt-2 text-sm font-medium text-black text-center">
+                {service}
+              </p>
+            </div>
+          ))}
       </div>
 
       {loading && <div className="text-gray-600">Loading...</div>}

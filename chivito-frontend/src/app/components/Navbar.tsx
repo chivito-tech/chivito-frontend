@@ -53,6 +53,15 @@ export default function Navbar() {
     }
   }, [pathname]);
 
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<{ ids?: number[] }>).detail;
+      setSelected(detail?.ids ?? []);
+    };
+    window.addEventListener("service-filter", handler as EventListener);
+    return () => window.removeEventListener("service-filter", handler as EventListener);
+  }, []);
+
   const requireAuth = (callback: () => void) => {
     if (currentUser) {
       callback();
@@ -167,6 +176,7 @@ export default function Navbar() {
         {/* Center: Service search (desktop) */}
         <div className="hidden md:flex w-1/2">
           <ServiceSelect
+            selectedIds={selected}
             onChange={(value: any) => {
               const ids = Array.isArray(value) ? value.map((v: any) => v.value) : [];
               setSelected(ids);
@@ -187,6 +197,7 @@ export default function Navbar() {
       {/* Mobile Search */}
       <div className="md:hidden px-4 py-2">
         <ServiceSelect
+          selectedIds={selected}
           onChange={(value: any) => {
             const ids = Array.isArray(value) ? value.map((v: any) => v.value) : [];
             setSelected(ids);
