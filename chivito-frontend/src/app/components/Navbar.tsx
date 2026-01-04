@@ -215,6 +215,7 @@ export default function Navbar() {
               window.dispatchEvent(
                 new CustomEvent("service-filter", { detail: { ids } })
               );
+              router.push("/search");
             }}
           />
         </div>
@@ -236,6 +237,7 @@ export default function Navbar() {
             window.dispatchEvent(
               new CustomEvent("service-filter", { detail: { ids } })
             );
+            router.push("/search");
           }}
         />
       </div>
