@@ -30,7 +30,15 @@ const buildPhotoUrl = (path?: string | null) => {
   return `${API_ORIGIN}${path.startsWith("/") ? "" : "/"}${path}`;
 };
 
-const sortOptions = ["Price: Low to High", "Rating", "Area", "Service"];
+const splitServiceAreas = (value?: string | null) => {
+  if (!value) return [];
+  return value
+    .split(/[,/]+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+};
+
+const sortOptions = ["Price: Low to High", "Rating"];
 
 export default function SearchPage() {
   const [sort, setSort] = useState("");
@@ -38,20 +46,23 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filterIds, setFilterIds] = useState<number[]>([]);
+  const [areaFilters, setAreaFilters] = useState<string[]>([]);
   const router = useRouter();
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
-  const categoryFilters = useMemo(() => {
-    const map = new Map<number, string>();
-    results.forEach((p) =>
-      p.categories.forEach((c) => {
-        if (!map.has(c.id)) {
-          map.set(c.id, c.name || c.slug);
-        }
-      })
-    );
-    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  const serviceAreaFilters = useMemo(() => {
+    const map = new Map<string, string>();
+    results.forEach((p) => {
+      const areas = splitServiceAreas(p.city);
+      areas.forEach((area) => {
+        map.set(area.toLowerCase(), area);
+      });
+    });
+    return Array.from(map.entries()).map(([value, label]) => ({
+      value,
+      label,
+    }));
   }, [results]);
 
   useEffect(() => {
@@ -84,6 +95,16 @@ export default function SearchPage() {
     load();
   }, []);
 
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<{ ids?: number[] }>).detail;
+      setFilterIds(detail?.ids ?? []);
+    };
+    window.addEventListener("service-filter", handler as EventListener);
+    return () =>
+      window.removeEventListener("service-filter", handler as EventListener);
+  }, []);
+
   const sortedResults = useMemo(() => {
     const sorted = [...results];
     switch (sort) {
@@ -107,22 +128,19 @@ export default function SearchPage() {
     return sorted;
   }, [results, sort]);
 
-  useEffect(() => {
-    const handler = (event: Event) => {
-      const detail = (event as CustomEvent<{ ids?: number[] }>).detail;
-      setFilterIds(detail?.ids ?? []);
-    };
-    window.addEventListener("service-filter", handler as EventListener);
-    return () =>
-      window.removeEventListener("service-filter", handler as EventListener);
-  }, []);
-
   const visibleResults = useMemo(() => {
-    if (!filterIds.length) return sortedResults;
-    return sortedResults.filter((p) =>
-      p.categories.some((c) => filterIds.includes(c.id))
-    );
-  }, [sortedResults, filterIds]);
+    return sortedResults.filter((p) => {
+      const matchesService =
+        !filterIds.length ||
+        p.categories.some((c) => filterIds.includes(c.id));
+      const matchesArea =
+        !areaFilters.length ||
+        splitServiceAreas(p.city)
+          .map((area) => area.toLowerCase())
+          .some((area) => areaFilters.includes(area));
+      return matchesService && matchesArea;
+    });
+  }, [sortedResults, filterIds, areaFilters]);
 
   const pagedResults = useMemo(
     () => visibleResults.slice(0, page * pageSize),
@@ -132,7 +150,7 @@ export default function SearchPage() {
   useEffect(() => {
     // Reset pagination when filters/sort change
     setPage(1);
-  }, [filterIds, sort, results.length]);
+  }, [filterIds, areaFilters, sort, results.length]);
 
   return (
     <div className="min-h-screen px-4 py-6 bg-gray-50">
@@ -153,45 +171,42 @@ export default function SearchPage() {
         </select>
       </div>
 
-      <div className="flex justify-between items-center w-full max-w-5xl mt-6 mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Categories</h3>
+      <div className="flex justify-between items-center w-full max-w-5xl mt-6 mb-3">
+        <h3 className="text-lg font-semibold text-gray-900">Service area</h3>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full max-w-5xl mb-6">
-        {(categoryFilters.length
-          ? categoryFilters
-          : [{ id: -1, name: "Plumber" }, { id: -2, name: "Electrician" }]
+      <div className="flex flex-wrap gap-2 w-full max-w-5xl mb-6">
+        {(serviceAreaFilters.length
+          ? serviceAreaFilters
+          : [
+              { value: "north", label: "North" },
+              { value: "south", label: "South" },
+              { value: "east", label: "East" },
+              { value: "west", label: "West" },
+              { value: "metro", label: "Metro" },
+              { value: "centro", label: "Centro" },
+              { value: "isla", label: "Isla" },
+            ]
         )
-          .slice(0, 8)
-          .map((cat) => {
-            const active = filterIds.includes(cat.id);
+          .slice(0, 10)
+          .map((city) => {
+            const active = areaFilters.includes(city.value);
             return (
               <button
-                key={cat.id}
+                key={city.value}
                 onClick={() => {
-                  setFilterIds((prev) => {
-                    const next = prev.includes(cat.id)
-                      ? prev.filter((id) => id !== cat.id)
-                      : [...prev, cat.id];
-                    window.dispatchEvent(
-                      new CustomEvent("service-filter", { detail: { ids: next } })
-                    );
-                    return next;
-                  });
+                  setAreaFilters((prev) =>
+                    prev.includes(city.value)
+                      ? prev.filter((item) => item !== city.value)
+                      : [...prev, city.value]
+                  );
                 }}
-                className={`flex flex-col items-center group bg-white rounded-xl shadow-sm p-3 border ${
-                  active ? "border-purple-500 shadow-md" : "border-transparent"
+                className={`px-3 py-1 rounded-full text-sm border transition ${
+                  active
+                    ? "bg-purple-600 text-white border-purple-600"
+                    : "bg-white text-gray-700 border-gray-200 hover:border-purple-300"
                 }`}
               >
-                <div className="w-14 h-14 flex items-center justify-center bg-gray-50 rounded-full shadow-md transition-transform duration-300 group-hover:scale-105">
-                  <img
-                    src="/broom.png"
-                    alt={cat.name}
-                    className="w-9 h-9 object-contain"
-                  />
-                </div>
-                <p className="mt-2 text-sm font-medium text-black text-center">
-                  {cat.name}
-                </p>
+                {city.label}
               </button>
             );
           })}
@@ -199,6 +214,14 @@ export default function SearchPage() {
 
       {loading && <div className="text-gray-600">Loading...</div>}
       {error && !loading && <div className="text-red-600 text-sm">{error}</div>}
+      {!loading &&
+        !error &&
+        visibleResults.length === 0 &&
+        (filterIds.length > 0 || areaFilters.length > 0) && (
+          <div className="text-gray-600 text-sm">
+            No services found for this search.
+          </div>
+        )}
 
       <AnimatePresence>
         {pagedResults.map((provider) => (
