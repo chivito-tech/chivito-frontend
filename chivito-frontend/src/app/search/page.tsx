@@ -131,8 +131,7 @@ export default function SearchPage() {
   const visibleResults = useMemo(() => {
     return sortedResults.filter((p) => {
       const matchesService =
-        !filterIds.length ||
-        p.categories.some((c) => filterIds.includes(c.id));
+        !filterIds.length || p.categories.some((c) => filterIds.includes(c.id));
       const matchesArea =
         !areaFilters.length ||
         splitServiceAreas(p.city)
