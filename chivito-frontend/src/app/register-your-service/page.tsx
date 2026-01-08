@@ -22,8 +22,10 @@ export default function RegisterYourService() {
   const [startingPrice, setStartingPrice] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
-  const [photos, setPhotos] = useState<File[]>([]);
-  const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
+  const [primaryPhoto, setPrimaryPhoto] = useState<File | null>(null);
+  const [extraPhotos, setExtraPhotos] = useState<File[]>([]);
+  const [primaryPreview, setPrimaryPreview] = useState<string | null>(null);
+  const [extraPreviews, setExtraPreviews] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -76,12 +78,22 @@ export default function RegisterYourService() {
   }, [router]);
 
   useEffect(() => {
-    const urls = photos.map((file) => URL.createObjectURL(file));
-    setPhotoPreviews(urls);
+    if (!primaryPhoto) {
+      setPrimaryPreview(null);
+      return;
+    }
+    const url = URL.createObjectURL(primaryPhoto);
+    setPrimaryPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [primaryPhoto]);
+
+  useEffect(() => {
+    const urls = extraPhotos.map((file) => URL.createObjectURL(file));
+    setExtraPreviews(urls);
     return () => {
       urls.forEach((url) => URL.revokeObjectURL(url));
     };
-  }, [photos]);
+  }, [extraPhotos]);
 
   const toggleCategory = (id: number) => {
     setSelectedCategories((prev) =>
@@ -122,7 +134,12 @@ export default function RegisterYourService() {
       selectedCategories.forEach((id) =>
         formData.append("category_ids[]", id.toString())
       );
-      photos.slice(0, 3).forEach((file) => formData.append("photos[]", file));
+      if (primaryPhoto) {
+        formData.append("photos[]", primaryPhoto);
+      }
+      extraPhotos.slice(0, 2).forEach((file) =>
+        formData.append("photos[]", file)
+      );
 
       const res = await fetch(`${API_BASE}/providers`, {
         method: "POST",
@@ -153,7 +170,8 @@ export default function RegisterYourService() {
       setAreas([]);
       setStartingPrice("");
       setSelectedCategories([]);
-      setPhotos([]);
+      setPrimaryPhoto(null);
+      setExtraPhotos([]);
       router.push("/");
     } catch (err) {
       console.error(err);
@@ -302,7 +320,50 @@ export default function RegisterYourService() {
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700">
-                Photos (up to 3, optional)
+                Service profile photo
+              </label>
+              <div className="mt-2 rounded-lg border border-dashed border-gray-300 p-4">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    setPrimaryPhoto(file);
+                  }}
+                  className="w-full text-sm text-gray-700"
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  This is the main photo shown on your service card.
+                </p>
+              </div>
+              <div className="mt-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-gray-500">
+                    {primaryPreview ? "Profile photo selected" : "Using placeholder"}
+                  </p>
+                  {primaryPreview && (
+                    <button
+                      type="button"
+                      onClick={() => setPrimaryPhoto(null)}
+                      className="text-xs text-purple-600 hover:underline"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+                <div className="mt-2 h-32 w-32 rounded-lg overflow-hidden bg-gray-100">
+                  <img
+                    src={primaryPreview || "/cleaning-1.jpg"}
+                    alt="Service profile preview"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Extra service photos (up to 2, optional)
               </label>
               <div className="mt-2 rounded-lg border border-dashed border-gray-300 p-4">
                 <input
@@ -310,38 +371,38 @@ export default function RegisterYourService() {
                   accept="image/*"
                   multiple
                   onChange={(e) => {
-                    const files = Array.from(e.target.files || []).slice(0, 3);
-                    setPhotos(files);
+                    const files = Array.from(e.target.files || []).slice(0, 2);
+                    setExtraPhotos(files);
                   }}
                   className="w-full text-sm text-gray-700"
                 />
                 <p className="text-xs text-gray-500 mt-2">
-                  Add up to 3 photos to help customers recognize your service.
+                  Share previous jobs or additional details about your service.
                 </p>
               </div>
-              {photoPreviews.length > 0 && (
+              {extraPreviews.length > 0 && (
                 <div className="mt-3">
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-gray-500">
-                      {photoPreviews.length} photo(s) selected
+                      {extraPreviews.length} extra photo(s) selected
                     </p>
                     <button
                       type="button"
-                      onClick={() => setPhotos([])}
+                      onClick={() => setExtraPhotos([])}
                       className="text-xs text-purple-600 hover:underline"
                     >
                       Clear selection
                     </button>
                   </div>
-                  <div className="mt-2 grid grid-cols-3 gap-3">
-                    {photoPreviews.map((src, index) => (
+                  <div className="mt-2 grid grid-cols-2 gap-3">
+                    {extraPreviews.map((src, index) => (
                       <div
                         key={`${src}-${index}`}
                         className="h-24 rounded-lg overflow-hidden bg-gray-100"
                       >
                         <img
                           src={src}
-                          alt={`Selected photo ${index + 1}`}
+                          alt={`Extra photo ${index + 1}`}
                           className="w-full h-full object-cover"
                         />
                       </div>

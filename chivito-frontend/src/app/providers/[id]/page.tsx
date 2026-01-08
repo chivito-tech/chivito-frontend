@@ -45,6 +45,7 @@ export default function ProviderDetailPage() {
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
+  const [activePhoto, setActivePhoto] = useState<string | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("user");
@@ -148,7 +149,10 @@ export default function ProviderDetailPage() {
             <img
               src={provider.photo1 || "/cleaning-1.jpg"}
               alt={provider.name}
-              className="w-full h-64 object-cover rounded-xl"
+              className="w-full h-64 object-cover rounded-xl cursor-pointer"
+              onClick={() =>
+                setActivePhoto(provider.photo1 || "/cleaning-1.jpg")
+              }
             />
             {photos && photos.length > 1 && (
               <div className="flex gap-3 mt-3">
@@ -157,7 +161,8 @@ export default function ProviderDetailPage() {
                     key={idx}
                     src={photo}
                     alt={`Photo ${idx + 1}`}
-                    className="w-1/3 h-20 object-cover rounded-lg"
+                    className="w-1/3 h-20 object-cover rounded-lg cursor-pointer"
+                    onClick={() => setActivePhoto(photo)}
                   />
                 ))}
               </div>
@@ -273,6 +278,20 @@ export default function ProviderDetailPage() {
           </div>
         </div>
       </div>
+      {activePhoto && (
+        <div
+          className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4"
+          onClick={() => setActivePhoto(null)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <img
+            src={activePhoto}
+            alt="Expanded service photo"
+            className="max-h-[90vh] max-w-[90vw] object-contain rounded-xl shadow-2xl"
+          />
+        </div>
+      )}
     </div>
   );
 }
