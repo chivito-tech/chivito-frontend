@@ -72,6 +72,7 @@ export default function EditProviderPage() {
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
   const [existingPhotos, setExistingPhotos] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -240,6 +241,47 @@ export default function EditProviderPage() {
       setError("Could not update right now. Try again.");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!id) return;
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this service? This cannot be undone."
+    );
+    if (!confirmDelete) return;
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`${API_BASE}/providers/${id}`, {
+        method: "DELETE",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        const detail =
+          data?.message ||
+          data?.error ||
+          (data?.errors && JSON.stringify(data.errors)) ||
+          "Could not delete service.";
+        setError(detail);
+        return;
+      }
+
+      router.push("/my-services");
+    } catch (err) {
+      console.error(err);
+      setError("Could not delete right now. Try again.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -510,6 +552,22 @@ export default function EditProviderPage() {
             </div>
           )}
         </form>
+
+        <div className="mt-8 border border-red-200 bg-red-50 rounded-xl p-5">
+          <h3 className="text-sm font-semibold text-red-700">Danger zone</h3>
+          <p className="text-sm text-red-600 mt-2">
+            Deleting a service removes it permanently. This action cannot be
+            undone.
+          </p>
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="mt-4 px-5 py-2.5 rounded-lg border border-red-300 text-red-700 hover:bg-red-100 disabled:opacity-70"
+          >
+            {isDeleting ? "Deleting..." : "Delete service"}
+          </button>
+        </div>
       </div>
     </div>
   );
