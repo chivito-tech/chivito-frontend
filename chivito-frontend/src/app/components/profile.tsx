@@ -7,6 +7,7 @@ import {
   Globe,
   Moon,
   Pencil,
+  Briefcase,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -61,6 +62,11 @@ export default function ProfileScreen({ user, onLogout }: ProfileScreenProps) {
             title="Notifications"
           />
           <SettingItem
+            icon={<Briefcase className="w-5 h-5" />}
+            title="My Services"
+            onClick={() => router.push("/my-services")}
+          />
+          <SettingItem
             icon={<CreditCard className="w-5 h-5" />}
             title="Payment"
           />
@@ -94,6 +100,7 @@ interface SettingItemProps {
   title: string;
   rightText?: string;
   toggle?: boolean;
+  onClick?: () => void;
 }
 
 function SettingItem({
@@ -101,9 +108,10 @@ function SettingItem({
   title,
   rightText = "",
   toggle = false,
+  onClick,
 }: SettingItemProps) {
-  return (
-    <li className="flex justify-between items-center py-3 border-b last:border-none">
+  const content = (
+    <>
       <div className="flex items-center gap-3">
         {icon}
         <span className="text-base">{title}</span>
@@ -112,6 +120,22 @@ function SettingItem({
         <input type="checkbox" className="cursor-pointer" />
       ) : (
         <span className="text-sm text-gray-500">{rightText}</span>
+      )}
+    </>
+  );
+
+  return (
+    <li className="border-b last:border-none">
+      {onClick ? (
+        <button
+          type="button"
+          onClick={onClick}
+          className="w-full flex justify-between items-center py-3 text-left"
+        >
+          {content}
+        </button>
+      ) : (
+        <div className="flex justify-between items-center py-3">{content}</div>
       )}
     </li>
   );
