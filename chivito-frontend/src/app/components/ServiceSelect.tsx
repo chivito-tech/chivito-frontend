@@ -49,10 +49,12 @@ export default function ServiceSelect({
         });
         if (!res.ok) throw new Error("Failed to load categories");
         const data = await res.json();
-        const mapped: CategoryOption[] = (data || []).map((c: any) => ({
-          value: c.id,
-          label: c.name ?? c.slug,
-        }));
+        const mapped: CategoryOption[] = (data || [])
+          .map((c: any) => ({
+            value: c.id,
+            label: c.name ?? c.slug,
+          }))
+          .sort((a, b) => a.label.localeCompare(b.label));
         setOptions(mapped);
       } catch (err) {
         console.error(err);
