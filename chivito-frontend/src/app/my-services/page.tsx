@@ -63,8 +63,12 @@ export default function MyServicesPage() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`${API_BASE}/providers`, {
-          headers: { Accept: "application/json" },
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${API_BASE}/my-providers`, {
+          headers: {
+            Accept: "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
         });
         if (!res.ok) throw new Error("Failed to load providers");
         const data = (await res.json()) as Provider[];
@@ -162,6 +166,14 @@ export default function MyServicesPage() {
                       {provider.price != null && !Number.isNaN(provider.price)
                         ? `$${provider.price.toFixed(2)}`
                         : "Contact for quote"}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      Status:{" "}
+                      <span className="font-semibold">
+                        {provider.status === "inactive"
+                          ? "Inactive"
+                          : "Active"}
+                      </span>
                     </div>
                   </div>
                 </div>

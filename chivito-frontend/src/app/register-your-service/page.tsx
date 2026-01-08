@@ -23,6 +23,7 @@ export default function RegisterYourService() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [photos, setPhotos] = useState<File[]>([]);
+  const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -70,6 +71,14 @@ export default function RegisterYourService() {
 
     loadCategories();
   }, [router]);
+
+  useEffect(() => {
+    const urls = photos.map((file) => URL.createObjectURL(file));
+    setPhotoPreviews(urls);
+    return () => {
+      urls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [photos]);
 
   const toggleCategory = (id: number) => {
     setSelectedCategories((prev) =>
@@ -292,20 +301,50 @@ export default function RegisterYourService() {
               <label className="block text-sm font-medium text-gray-700">
                 Photos (up to 3, optional)
               </label>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={(e) => {
-                  const files = Array.from(e.target.files || []).slice(0, 3);
-                  setPhotos(files);
-                }}
-                className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2 text-black focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
-              {photos.length > 0 && (
-                <p className="text-xs text-gray-500 mt-1">
-                  {photos.length} file(s) selected
+              <div className="mt-2 rounded-lg border border-dashed border-gray-300 p-4">
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || []).slice(0, 3);
+                    setPhotos(files);
+                  }}
+                  className="w-full text-sm text-gray-700"
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  Add up to 3 photos to help customers recognize your service.
                 </p>
+              </div>
+              {photoPreviews.length > 0 && (
+                <div className="mt-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-gray-500">
+                      {photoPreviews.length} photo(s) selected
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setPhotos([])}
+                      className="text-xs text-purple-600 hover:underline"
+                    >
+                      Clear selection
+                    </button>
+                  </div>
+                  <div className="mt-2 grid grid-cols-3 gap-3">
+                    {photoPreviews.map((src, index) => (
+                      <div
+                        key={`${src}-${index}`}
+                        className="h-24 rounded-lg overflow-hidden bg-gray-100"
+                      >
+                        <img
+                          src={src}
+                          alt={`Selected photo ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           </div>

@@ -27,6 +27,13 @@ type Provider = {
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8002/api";
+const API_ORIGIN = API_BASE.replace(/\/api\/?$/, "");
+
+const buildPhotoUrl = (path?: string | null) => {
+  if (!path) return null;
+  if (path.startsWith("http")) return path;
+  return `${API_ORIGIN}${path.startsWith("/") ? "" : "/"}${path}`;
+};
 
 const areaOptions = [
   "North",
@@ -58,9 +65,12 @@ export default function EditProviderPage() {
   const [bio, setBio] = useState("");
   const [areas, setAreas] = useState<string[]>([]);
   const [startingPrice, setStartingPrice] = useState("");
+  const [isActive, setIsActive] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [photos, setPhotos] = useState<File[]>([]);
+  const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
+  const [existingPhotos, setExistingPhotos] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -120,6 +130,7 @@ export default function EditProviderPage() {
             ? providerData.price.toString()
             : ""
         );
+        setIsActive(providerData.status !== "inactive");
         const initialAreas = splitServiceAreas(providerData.city).map((area) => {
           const match = areaOptions.find(
             (option) => normalizeArea(option) === normalizeArea(area)
@@ -128,6 +139,11 @@ export default function EditProviderPage() {
         });
         setAreas(initialAreas);
         setSelectedCategories(providerData.categories.map((c) => c.id));
+        setExistingPhotos(
+          [providerData.photo1, providerData.photo2, providerData.photo3]
+            .map((photo) => buildPhotoUrl(photo))
+            .filter(Boolean) as string[]
+        );
       } catch (err) {
         console.error(err);
         setError("Could not load provider. Try again later.");
@@ -138,6 +154,14 @@ export default function EditProviderPage() {
 
     load();
   }, [id, router, token, currentUserId]);
+
+  useEffect(() => {
+    const urls = photos.map((file) => URL.createObjectURL(file));
+    setPhotoPreviews(urls);
+    return () => {
+      urls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [photos]);
 
   const toggleCategory = (id: number) => {
     setSelectedCategories((prev) =>
@@ -174,6 +198,7 @@ export default function EditProviderPage() {
       formData.append("company_name", companyName);
       formData.append("phone", phone);
       formData.append("bio", bio);
+      formData.append("status", isActive ? "approved" : "inactive");
       if (areas.length) formData.append("city", areas.join(", "));
       if (startingPrice && !Number.isNaN(parseFloat(startingPrice))) {
         formData.append(
@@ -209,7 +234,7 @@ export default function EditProviderPage() {
 
       setMessage("Service updated.");
       setPhotos([]);
-      router.push(`/providers/${id}`);
+      router.push("/my-services");
     } catch (err) {
       console.error(err);
       setError("Could not update right now. Try again.");
@@ -364,22 +389,97 @@ export default function EditProviderPage() {
             </div>
           </div>
 
+          <div className="rounded-lg border border-gray-200 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900">
+                  Listing status
+                </h3>
+                <p className="text-xs text-gray-500 mt-1">
+                  Inactive services are hidden from search and listings.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsActive((prev) => !prev)}
+                className={`w-12 h-6 rounded-full transition ${
+                  isActive ? "bg-purple-600" : "bg-gray-300"
+                }`}
+                aria-pressed={isActive}
+              >
+                <span
+                  className={`block w-5 h-5 bg-white rounded-full shadow transform transition ${
+                    isActive ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+
           <div>
             <label className="text-sm font-medium text-gray-700">
-              Upload new photos (optional)
+              Photos
             </label>
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3"
-              onChange={(e) =>
-                setPhotos(e.target.files ? Array.from(e.target.files) : [])
-              }
-            />
-            <p className="text-xs text-gray-500 mt-2">
-              Uploading new photos will replace existing ones.
-            </p>
+            {existingPhotos.length > 0 && (
+              <div className="mt-2 grid grid-cols-3 gap-3">
+                {existingPhotos.map((photo, index) => (
+                  <div
+                    key={`${photo}-${index}`}
+                    className="h-24 rounded-lg overflow-hidden bg-gray-100"
+                  >
+                    <img
+                      src={photo}
+                      alt={`Current photo ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="mt-3 rounded-lg border border-dashed border-gray-300 p-4">
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                className="w-full text-sm text-gray-700"
+                onChange={(e) =>
+                  setPhotos(e.target.files ? Array.from(e.target.files) : [])
+                }
+              />
+              <p className="text-xs text-gray-500 mt-2">
+                Uploading new photos will replace your current ones.
+              </p>
+            </div>
+            {photoPreviews.length > 0 && (
+              <div className="mt-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-gray-500">
+                    {photoPreviews.length} new photo(s) selected
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setPhotos([])}
+                    className="text-xs text-purple-600 hover:underline"
+                  >
+                    Clear selection
+                  </button>
+                </div>
+                <div className="mt-2 grid grid-cols-3 gap-3">
+                  {photoPreviews.map((src, index) => (
+                    <div
+                      key={`${src}-${index}`}
+                      className="h-24 rounded-lg overflow-hidden bg-gray-100"
+                    >
+                      <img
+                        src={src}
+                        alt={`Selected photo ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-4">

@@ -9,6 +9,7 @@ import {
   Pencil,
   Briefcase,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 interface User {
@@ -25,6 +26,18 @@ interface ProfileScreenProps {
 
 export default function ProfileScreen({ user, onLogout }: ProfileScreenProps) {
   const router = useRouter();
+  const [profilePhoto, setProfilePhoto] = useState<string>("/user-avatar.jpg");
+
+  useEffect(() => {
+    const storedPhoto = localStorage.getItem("profile-photo");
+    if (storedPhoto) {
+      setProfilePhoto(storedPhoto);
+      return;
+    }
+    if (user.photo) {
+      setProfilePhoto(user.photo);
+    }
+  }, [user.photo]);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -43,14 +56,34 @@ export default function ProfileScreen({ user, onLogout }: ProfileScreenProps) {
       <div className="flex flex-col items-center bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
         <div className="relative">
           <img
-            src="/user-avatar.jpg"
+            src={profilePhoto}
             alt="Profile"
-            className="w-24 h-24 rounded-full border-4 border-purple-500"
+            className="w-24 h-24 rounded-full border-4 border-purple-500 object-cover"
           />
-          <button className="absolute bottom-1 right-1 bg-purple-500 p-2 rounded-full shadow-lg">
+          <label className="absolute bottom-1 right-1 bg-purple-500 p-2 rounded-full shadow-lg cursor-pointer">
             <Pencil className="w-5 h-5 text-white" />
-          </button>
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = () => {
+                  if (typeof reader.result === "string") {
+                    setProfilePhoto(reader.result);
+                    localStorage.setItem("profile-photo", reader.result);
+                  }
+                };
+                reader.readAsDataURL(file);
+              }}
+            />
+          </label>
         </div>
+        <p className="text-xs text-gray-500 mt-3">
+          Tap the pencil to upload a new profile photo.
+        </p>
         <h3 className="text-xl font-semibold mt-3">{user.name}</h3>
         <p className="text-gray-500">{user.email}</p>
       </div>
