@@ -371,8 +371,11 @@ export default function RegisterYourService() {
                   accept="image/*"
                   multiple
                   onChange={(e) => {
-                    const files = Array.from(e.target.files || []).slice(0, 2);
-                    setExtraPhotos(files);
+                    const files = Array.from(e.target.files || []);
+                    setExtraPhotos((prev) =>
+                      [...prev, ...files].slice(0, 2)
+                    );
+                    e.currentTarget.value = "";
                   }}
                   className="w-full text-sm text-gray-700"
                 />
