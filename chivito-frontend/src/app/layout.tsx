@@ -2,6 +2,12 @@ import Navbar from "@/app/components/Navbar";
 import "../app/globals.css"; // Ensure this line is present
 import BottomNav from "./components/BottomNav";
 
+export const metadata = {
+  icons: {
+    icon: "/logo.png",
+  },
+};
+
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="h-full w-full bg-gray-50">

@@ -51,19 +51,18 @@ export default function SearchPage() {
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
-  const serviceAreaFilters = useMemo(() => {
-    const map = new Map<string, string>();
-    results.forEach((p) => {
-      const areas = splitServiceAreas(p.city);
-      areas.forEach((area) => {
-        map.set(area.toLowerCase(), area);
-      });
-    });
-    return Array.from(map.entries()).map(([value, label]) => ({
-      value,
-      label,
-    }));
-  }, [results]);
+  const serviceAreaFilters = useMemo(
+    () => [
+      { value: "north", label: "North" },
+      { value: "south", label: "South" },
+      { value: "east", label: "East" },
+      { value: "west", label: "West" },
+      { value: "metro", label: "Metro" },
+      { value: "centro", label: "Centro" },
+      { value: "isla", label: "Isla" },
+    ],
+    []
+  );
 
   useEffect(() => {
     const load = async () => {
@@ -174,20 +173,7 @@ export default function SearchPage() {
         <h3 className="text-lg font-semibold text-gray-900">Service area</h3>
       </div>
       <div className="flex flex-wrap gap-2 w-full max-w-5xl mb-6">
-        {(serviceAreaFilters.length
-          ? serviceAreaFilters
-          : [
-              { value: "north", label: "North" },
-              { value: "south", label: "South" },
-              { value: "east", label: "East" },
-              { value: "west", label: "West" },
-              { value: "metro", label: "Metro" },
-              { value: "centro", label: "Centro" },
-              { value: "isla", label: "Isla" },
-            ]
-        )
-          .slice(0, 10)
-          .map((city) => {
+        {serviceAreaFilters.map((city) => {
             const active = areaFilters.includes(city.value);
             return (
               <button

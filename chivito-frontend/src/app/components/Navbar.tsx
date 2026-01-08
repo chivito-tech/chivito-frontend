@@ -44,7 +44,10 @@ export default function Navbar() {
 
     return () => {
       window.removeEventListener("storage", handleAuthChange);
-      window.removeEventListener("auth-change", handleAuthChange as EventListener);
+      window.removeEventListener(
+        "auth-change",
+        handleAuthChange as EventListener
+      );
     };
   }, []);
 
@@ -60,7 +63,8 @@ export default function Navbar() {
       setSelected(detail?.ids ?? []);
     };
     window.addEventListener("service-filter", handler as EventListener);
-    return () => window.removeEventListener("service-filter", handler as EventListener);
+    return () =>
+      window.removeEventListener("service-filter", handler as EventListener);
   }, []);
 
   const requireAuth = (callback: () => void) => {
@@ -104,10 +108,19 @@ export default function Navbar() {
   };
 
   const Brand = () => (
-    <div className="flex flex-col leading-tight">
-      <span className="text-sm text-gray-400">Welcome to Chivito 👋</span>
-      <span className="font-semibold text-gray-800">User</span>
-    </div>
+    <button
+      type="button"
+      onClick={() => router.push("/")}
+      className="flex items-center gap-2"
+      aria-label="Go to home"
+    >
+      <img
+        src="/logo.png"
+        alt="Brega logo"
+        className="h-10 w-10 object-contain"
+      />
+      <span className="hidden sm:block font-semibold text-gray-800">Brega</span>
+    </button>
   );
 
   const DesktopActions = () => {
@@ -212,7 +225,9 @@ export default function Navbar() {
           <ServiceSelect
             selectedIds={selected}
             onChange={(value: any) => {
-              const ids = Array.isArray(value) ? value.map((v: any) => v.value) : [];
+              const ids = Array.isArray(value)
+                ? value.map((v: any) => v.value)
+                : [];
               setSelected(ids);
               window.dispatchEvent(
                 new CustomEvent("service-filter", { detail: { ids } })
@@ -234,7 +249,9 @@ export default function Navbar() {
         <ServiceSelect
           selectedIds={selected}
           onChange={(value: any) => {
-            const ids = Array.isArray(value) ? value.map((v: any) => v.value) : [];
+            const ids = Array.isArray(value)
+              ? value.map((v: any) => v.value)
+              : [];
             setSelected(ids);
             window.dispatchEvent(
               new CustomEvent("service-filter", { detail: { ids } })
