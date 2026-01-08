@@ -141,7 +141,7 @@ export default function Home() {
       </div>
       <div className="w-full max-w-5xl mb-6">
         <div className="flex items-center justify-between px-1">
-          <h4 className="text-sm font-semibold text-gray-700">Categories</h4>
+          {/* <h4 className="text-sm font-semibold text-gray-700">Categories</h4> */}
           {categoryList.length > 8 && (
             <span className="text-xs text-gray-500">Scroll to see more</span>
           )}
@@ -236,7 +236,7 @@ export default function Home() {
               </div>
             </div>
 
-            <button
+            {/* <button
               className="ml-auto text-purple-600"
               onClick={(e) => {
                 e.stopPropagation();
@@ -244,7 +244,7 @@ export default function Home() {
               }}
             >
               📌
-            </button>
+            </button> */}
           </div>
         ))}
 
