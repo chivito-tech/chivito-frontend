@@ -43,6 +43,9 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
         return;
       }
 
+      if (data?.token) {
+        localStorage.setItem("token", data.token);
+      }
       setError("");
       onLogin(data); // Send real user info to parent
     } catch (err) {

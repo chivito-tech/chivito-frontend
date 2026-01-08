@@ -94,6 +94,7 @@ export default function RegisterYourService() {
 
     setIsSubmitting(true);
     try {
+      const token = localStorage.getItem("token");
       const formData = new FormData();
       formData.append("name", name);
       formData.append("company_name", companyName);
@@ -115,6 +116,7 @@ export default function RegisterYourService() {
         method: "POST",
         headers: {
           Accept: "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: formData,
       });

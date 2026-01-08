@@ -11,6 +11,7 @@ type Category = {
 
 type Provider = {
   id: number;
+  user_id?: number | null;
   name: string;
   company_name: string;
   phone: string;
@@ -41,6 +42,21 @@ export default function ProviderDetailPage() {
   const [provider, setProvider] = useState<Provider | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (typeof parsed?.id === "number") {
+          setCurrentUserId(parsed.id);
+        }
+      } catch (err) {
+        console.error("Failed to parse user from storage", err);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const load = async () => {
@@ -129,6 +145,17 @@ export default function ProviderDetailPage() {
                 {provider.name}
                 {provider.company_name ? ` • ${provider.company_name}` : ""}
               </h1>
+              {provider.user_id != null &&
+                currentUserId === provider.user_id && (
+                  <button
+                    onClick={() =>
+                      router.push(`/providers/${provider.id}/edit`)
+                    }
+                    className="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700"
+                  >
+                    Edit service
+                  </button>
+                )}
             </div>
             <div className="flex flex-wrap gap-2 mt-2 text-sm text-gray-600">
               <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-semibold">
