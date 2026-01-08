@@ -88,7 +88,9 @@ export default function Navbar() {
 
   const handleBookmarks = () => {
     requireAuth(() => {
-      // Placeholder for bookmarks action; stays on current page.
+      setActiveTab("bookmark");
+      router.push("/bookmark");
+      setIsOpen(false);
     });
   };
 

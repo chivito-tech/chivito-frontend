@@ -43,6 +43,8 @@ export default function ProviderDetailPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [bookmarkLoading, setBookmarkLoading] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem("user");
@@ -57,6 +59,29 @@ export default function ProviderDetailPage() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    const loadBookmarks = async () => {
+      if (!provider?.id) return;
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      try {
+        const res = await fetch(`${API_BASE}/bookmarks`, {
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as Provider[];
+        setIsBookmarked(data.some((item) => item.id === provider.id));
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    loadBookmarks();
+  }, [provider?.id]);
 
   useEffect(() => {
     const load = async () => {
@@ -145,17 +170,64 @@ export default function ProviderDetailPage() {
                 {provider.name}
                 {provider.company_name ? ` • ${provider.company_name}` : ""}
               </h1>
-              {provider.user_id != null &&
-                currentUserId === provider.user_id && (
-                  <button
-                    onClick={() =>
-                      router.push(`/providers/${provider.id}/edit`)
+              <div className="flex items-center gap-2">
+                {provider.user_id != null &&
+                  currentUserId === provider.user_id && (
+                    <button
+                      onClick={() =>
+                        router.push(`/providers/${provider.id}/edit`)
+                      }
+                      className="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700"
+                    >
+                      Edit service
+                    </button>
+                  )}
+                <button
+                  onClick={() => {
+                    const storedUser = localStorage.getItem("user");
+                    if (!storedUser) {
+                      router.push("/login");
+                      return;
                     }
-                    className="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700"
-                  >
-                    Edit service
-                  </button>
-                )}
+                    const token = localStorage.getItem("token");
+                    if (!token) {
+                      router.push("/login");
+                      return;
+                    }
+                    setBookmarkLoading(true);
+                    const action = isBookmarked ? "DELETE" : "POST";
+                    fetch(`${API_BASE}/bookmarks/${provider.id}`, {
+                      method: action,
+                      headers: {
+                        Accept: "application/json",
+                        Authorization: `Bearer ${token}`,
+                      },
+                    })
+                      .then((res) => {
+                        if (!res.ok) {
+                          throw new Error("Bookmark request failed");
+                        }
+                        setIsBookmarked(!isBookmarked);
+                      })
+                      .catch((err) => {
+                        console.error(err);
+                      })
+                      .finally(() => setBookmarkLoading(false));
+                  }}
+                  className={`px-4 py-2 rounded-lg border text-sm font-medium ${
+                    isBookmarked
+                      ? "border-purple-600 text-purple-700 bg-purple-50"
+                      : "border-gray-300 text-gray-700"
+                  }`}
+                  disabled={bookmarkLoading}
+                >
+                  {bookmarkLoading
+                    ? "Saving..."
+                    : isBookmarked
+                      ? "Saved"
+                      : "Save"}
+                </button>
+              </div>
             </div>
             <div className="flex flex-wrap gap-2 mt-2 text-sm text-gray-600">
               <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-semibold">
