@@ -14,7 +14,6 @@ type Provider = {
   city?: string | null;
   status: string;
   price?: number | null;
-  tags?: string | null;
   photo1?: string | null;
   photo2?: string | null;
   photo3?: string | null;
@@ -39,13 +38,6 @@ const splitServiceAreas = (value?: string | null) => {
     .filter(Boolean);
 };
 
-const splitTags = (value?: string | null) => {
-  if (!value) return [];
-  return value
-    .split(",")
-    .map((part) => part.trim())
-    .filter(Boolean);
-};
 
 const sortOptions = ["Price: Low to High", "Rating"];
 
@@ -259,14 +251,6 @@ export default function SearchPage() {
                   className="bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full"
                 >
                   {service.name}
-                </span>
-              ))}
-              {splitTags(provider.tags).map((tag) => (
-                <span
-                  key={tag}
-                  className="bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full"
-                >
-                  {tag}
                 </span>
               ))}
               <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">

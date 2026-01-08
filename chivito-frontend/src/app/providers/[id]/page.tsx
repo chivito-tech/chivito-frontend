@@ -16,7 +16,6 @@ type Provider = {
   company_name: string;
   phone: string;
   bio?: string | null;
-  tags?: string | null;
   city?: string | null;
   status: string;
   price?: number | null;
@@ -36,13 +35,6 @@ const buildPhotoUrl = (path?: string | null) => {
   return `${API_ORIGIN}${path.startsWith("/") ? "" : "/"}${path}`;
 };
 
-const splitTags = (value?: string | null) => {
-  if (!value) return [];
-  return value
-    .split(",")
-    .map((part) => part.trim())
-    .filter(Boolean);
-};
 
 export default function ProviderDetailPage() {
   const params = useParams();
@@ -261,14 +253,6 @@ export default function ProviderDetailPage() {
                   className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium"
                 >
                   {c.name}
-                </span>
-              ))}
-              {splitTags(provider.tags).map((tag) => (
-                <span
-                  key={tag}
-                  className="bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-xs font-medium"
-                >
-                  {tag}
                 </span>
               ))}
             </div>

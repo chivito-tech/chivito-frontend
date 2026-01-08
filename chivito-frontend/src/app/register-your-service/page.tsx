@@ -18,7 +18,6 @@ export default function RegisterYourService() {
   const [companyName, setCompanyName] = useState("");
   const [phone, setPhone] = useState("");
   const [bio, setBio] = useState("");
-  const [tags, setTags] = useState("");
   const [areas, setAreas] = useState<string[]>([]);
   const [startingPrice, setStartingPrice] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
@@ -126,7 +125,6 @@ export default function RegisterYourService() {
       formData.append("phone", phone);
       if (bio) formData.append("bio", bio);
       if (areas.length) formData.append("city", areas.join(", "));
-      if (tags.trim()) formData.append("tags", tags.trim());
       if (startingPrice && !Number.isNaN(parseFloat(startingPrice))) {
         formData.append(
           "price",
@@ -169,7 +167,6 @@ export default function RegisterYourService() {
       setCompanyName("");
       setPhone("");
       setBio("");
-      setTags("");
       setAreas([]);
       setStartingPrice("");
       setSelectedCategories([]);
@@ -320,21 +317,6 @@ export default function RegisterYourService() {
                 className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2 text-black focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="Tell customers what you do best."
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Tags (optional)
-              </label>
-              <input
-                type="text"
-                value={tags}
-                onChange={(e) => setTags(e.target.value)}
-                className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-2 text-black focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="e.g., drain cleaning, emergency, same-day"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Separate tags with commas.
-              </p>
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700">

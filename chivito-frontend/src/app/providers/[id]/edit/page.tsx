@@ -16,7 +16,6 @@ type Provider = {
   company_name: string;
   phone: string;
   bio?: string | null;
-  tags?: string | null;
   city?: string | null;
   status: string;
   price?: number | null;
@@ -64,7 +63,6 @@ export default function EditProviderPage() {
   const [companyName, setCompanyName] = useState("");
   const [phone, setPhone] = useState("");
   const [bio, setBio] = useState("");
-  const [tags, setTags] = useState("");
   const [areas, setAreas] = useState<string[]>([]);
   const [startingPrice, setStartingPrice] = useState("");
   const [isActive, setIsActive] = useState(true);
@@ -128,7 +126,6 @@ export default function EditProviderPage() {
         setCompanyName(providerData.company_name);
         setPhone(providerData.phone);
         setBio(providerData.bio ?? "");
-        setTags(providerData.tags ?? "");
         setStartingPrice(
           providerData.price != null && !Number.isNaN(providerData.price)
             ? providerData.price.toString()
@@ -202,7 +199,6 @@ export default function EditProviderPage() {
       formData.append("company_name", companyName);
       formData.append("phone", phone);
       formData.append("bio", bio);
-      if (tags.trim()) formData.append("tags", tags.trim());
       formData.append("status", isActive ? "approved" : "inactive");
       if (areas.length) formData.append("city", areas.join(", "));
       if (startingPrice && !Number.isNaN(parseFloat(startingPrice))) {
@@ -383,20 +379,6 @@ export default function EditProviderPage() {
               className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 min-h-[120px]"
               placeholder="Share your experience and what you offer"
             />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-700">
-              Tags (optional)
-            </label>
-            <input
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3"
-              placeholder="e.g., drain cleaning, emergency, same-day"
-            />
-            <p className="text-xs text-gray-500 mt-2">
-              Separate tags with commas.
-            </p>
           </div>
 
           <div>

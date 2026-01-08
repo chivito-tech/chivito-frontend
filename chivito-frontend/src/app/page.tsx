@@ -18,7 +18,6 @@ type Provider = {
   zip?: string | null;
   status: string;
   price?: number | null;
-  tags?: string | null;
   photo1?: string | null;
   photo2?: string | null;
   photo3?: string | null;
@@ -37,13 +36,6 @@ const buildPhotoUrl = (path?: string | null) => {
   return `${API_ORIGIN}${path.startsWith("/") ? "" : "/"}${path}`;
 };
 
-const splitTags = (value?: string | null) => {
-  if (!value) return [];
-  return value
-    .split(",")
-    .map((part) => part.trim())
-    .filter(Boolean);
-};
 
 export default function Home() {
   const [providers, setProviders] = useState<Provider[]>([]);
@@ -216,14 +208,6 @@ export default function Home() {
                     className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium shadow-xs"
                   >
                     {service.name}
-                  </span>
-                ))}
-                {splitTags(provider.tags).map((tag) => (
-                  <span
-                    key={tag}
-                    className="bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-xs font-medium shadow-xs"
-                  >
-                    {tag}
                   </span>
                 ))}
               </div>
