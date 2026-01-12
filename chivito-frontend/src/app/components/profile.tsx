@@ -1,11 +1,10 @@
 "use client";
 import {
   LogOut,
-  Bell,
-  CreditCard,
   Shield,
-  Globe,
-  Moon,
+  User,
+  Lock,
+  LifeBuoy,
   Pencil,
   Briefcase,
 } from "lucide-react";
@@ -91,8 +90,9 @@ export default function ProfileScreen({ user, onLogout }: ProfileScreenProps) {
       <div className="w-full max-w-md bg-white mt-6 p-4 rounded-lg shadow-md">
         <ul className="space-y-4 text-gray-700">
           <SettingItem
-            icon={<Bell className="w-5 h-5" />}
-            title="Notifications"
+            icon={<User className="w-5 h-5" />}
+            title="Profile Info"
+            onClick={() => router.push("/settings/profile")}
           />
           <SettingItem
             icon={<Briefcase className="w-5 h-5" />}
@@ -100,19 +100,19 @@ export default function ProfileScreen({ user, onLogout }: ProfileScreenProps) {
             onClick={() => router.push("/my-services")}
           />
           <SettingItem
-            icon={<CreditCard className="w-5 h-5" />}
-            title="Payment"
-          />
-          <SettingItem icon={<Shield className="w-5 h-5" />} title="Security" />
-          <SettingItem
-            icon={<Globe className="w-5 h-5" />}
-            title="Language"
-            rightText="English (US)"
+            icon={<Lock className="w-5 h-5" />}
+            title="Security"
+            onClick={() => router.push("/settings/security")}
           />
           <SettingItem
-            icon={<Moon className="w-5 h-5" />}
-            title="Dark Mode"
-            toggle={true}
+            icon={<Shield className="w-5 h-5" />}
+            title="Privacy"
+            onClick={() => router.push("/settings/privacy")}
+          />
+          <SettingItem
+            icon={<LifeBuoy className="w-5 h-5" />}
+            title="Support"
+            onClick={() => router.push("/support")}
           />
         </ul>
       </div>
