@@ -235,7 +235,10 @@ export default function Navbar() {
               window.dispatchEvent(
                 new CustomEvent("service-filter", { detail: { ids: limited } })
               );
-              router.push("/search");
+              const query = limited.length
+                ? `/search?categories=${limited.join(",")}`
+                : "/search";
+              router.push(query);
             }}
           />
         </div>
@@ -260,7 +263,10 @@ export default function Navbar() {
             window.dispatchEvent(
               new CustomEvent("service-filter", { detail: { ids: limited } })
             );
-            router.push("/search");
+            const query = limited.length
+              ? `/search?categories=${limited.join(",")}`
+              : "/search";
+            router.push(query);
           }}
         />
       </div>

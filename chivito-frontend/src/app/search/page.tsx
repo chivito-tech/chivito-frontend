@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Category = { id: number; name: string; slug: string };
@@ -55,6 +55,7 @@ export default function SearchPage() {
     []
   );
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
@@ -110,6 +111,18 @@ export default function SearchPage() {
     return () =>
       window.removeEventListener("service-filter", handler as EventListener);
   }, []);
+
+  useEffect(() => {
+    const categoriesParam = searchParams.get("categories");
+    if (!categoriesParam) return;
+    const parsed = categoriesParam
+      .split(",")
+      .map((value) => Number(value))
+      .filter((value) => !Number.isNaN(value));
+    if (parsed.length) {
+      setFilterIds(parsed.slice(0, 2));
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const loadSubcategories = async () => {
