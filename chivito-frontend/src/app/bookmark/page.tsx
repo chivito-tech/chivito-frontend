@@ -22,6 +22,7 @@ type Provider = {
   photo2?: string | null;
   photo3?: string | null;
   categories: Category[];
+  subcategories?: { id: number; name: string; slug: string; category_id: number }[];
 };
 
 const API_BASE =
@@ -180,6 +181,14 @@ export default function BookmarkPage() {
                       className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs"
                     >
                       {service.name}
+                    </span>
+                  ))}
+                  {(provider.subcategories || []).map((sub) => (
+                    <span
+                      key={sub.id}
+                      className="bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full text-xs"
+                    >
+                      {sub.name}
                     </span>
                   ))}
                 </div>

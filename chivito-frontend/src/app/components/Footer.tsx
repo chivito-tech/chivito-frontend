@@ -12,7 +12,7 @@ export default function Footer() {
             alt="Brega logo"
             className="h-6 w-6 object-contain"
           />
-          © {new Date().getFullYear()} Brega
+          © {new Date().getFullYear()} Chivito
         </span>
         <div className="flex items-center gap-4">
           <Link href="/about" className="hover:text-gray-800">

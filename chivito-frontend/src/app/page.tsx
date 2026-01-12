@@ -22,6 +22,7 @@ type Provider = {
   photo2?: string | null;
   photo3?: string | null;
   categories: Category[];
+  subcategories?: { id: number; name: string; slug: string; category_id: number }[];
   // UI-only fallbacks
   image?: string;
 };
@@ -208,6 +209,14 @@ export default function Home() {
                     className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium shadow-xs"
                   >
                     {service.name}
+                  </span>
+                ))}
+                {(provider.subcategories || []).map((sub) => (
+                  <span
+                    key={sub.id}
+                    className="bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-xs font-medium shadow-xs"
+                  >
+                    {sub.name}
                   </span>
                 ))}
               </div>

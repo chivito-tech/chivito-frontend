@@ -9,6 +9,13 @@ type Category = {
   slug: string;
 };
 
+type Subcategory = {
+  id: number;
+  name: string;
+  slug: string;
+  category_id: number;
+};
+
 type Provider = {
   id: number;
   user_id?: number | null;
@@ -23,6 +30,7 @@ type Provider = {
   photo2?: string | null;
   photo3?: string | null;
   categories: Category[];
+  subcategories?: Subcategory[];
 };
 
 const API_BASE =
@@ -68,6 +76,10 @@ export default function EditProviderPage() {
   const [isActive, setIsActive] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [selectedSubcategories, setSelectedSubcategories] = useState<number[]>(
+    []
+  );
   const [photos, setPhotos] = useState<File[]>([]);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
   const [existingPhotos, setExistingPhotos] = useState<string[]>([]);
@@ -75,6 +87,9 @@ export default function EditProviderPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [categoryLimitError, setCategoryLimitError] = useState<string | null>(
+    null
+  );
   const [loading, setLoading] = useState(false);
 
   const token = useMemo(() => localStorage.getItem("token"), []);
@@ -140,6 +155,9 @@ export default function EditProviderPage() {
         });
         setAreas(initialAreas);
         setSelectedCategories(providerData.categories.map((c) => c.id));
+        setSelectedSubcategories(
+          (providerData.subcategories || []).map((sub) => sub.id)
+        );
         setExistingPhotos(
           [providerData.photo1, providerData.photo2, providerData.photo3]
             .map((photo) => buildPhotoUrl(photo))
@@ -164,9 +182,55 @@ export default function EditProviderPage() {
     };
   }, [photos]);
 
+  useEffect(() => {
+    const loadSubcategories = async () => {
+      if (!selectedCategories.length) {
+        setSubcategories([]);
+        setSelectedSubcategories([]);
+        return;
+      }
+      try {
+        const params = new URLSearchParams();
+        selectedCategories.forEach((catId) =>
+          params.append("category_ids[]", catId.toString())
+        );
+        const res = await fetch(`${API_BASE}/subcategories?${params.toString()}`, {
+          headers: { Accept: "application/json" },
+        });
+        if (!res.ok) {
+          throw new Error("Failed to load subcategories");
+        }
+        const data = (await res.json()) as Subcategory[];
+        setSubcategories(data);
+        setSelectedSubcategories((prev) =>
+          prev.filter((subId) => data.some((sub) => sub.id === subId))
+        );
+      } catch (err) {
+        console.error(err);
+        setSubcategories([]);
+      }
+    };
+
+    loadSubcategories();
+  }, [selectedCategories]);
+
   const toggleCategory = (id: number) => {
-    setSelectedCategories((prev) =>
-      prev.includes(id) ? prev.filter((catId) => catId !== id) : [...prev, id]
+    setCategoryLimitError(null);
+    setSelectedCategories((prev) => {
+      if (prev.includes(id)) {
+        return prev.filter((catId) => catId !== id);
+      }
+      if (prev.length >= 2) {
+        setCategoryLimitError("You can select up to 2 categories.");
+        return prev;
+      }
+      return [...prev, id];
+    });
+  };
+
+  const toggleSubcategory = (id: number) => {
+    setSelectedSubcategories((prev) =>
+      prev.includes(id) ? prev.filter((subId) => subId !== id) : [...prev, id]
     );
   };
 
@@ -209,6 +273,9 @@ export default function EditProviderPage() {
       }
       selectedCategories.forEach((id) =>
         formData.append("category_ids[]", id.toString())
+      );
+      selectedSubcategories.forEach((id) =>
+        formData.append("subcategory_ids[]", id.toString())
       );
       photos.slice(0, 3).forEach((file) => formData.append("photos[]", file));
 
@@ -429,7 +496,37 @@ export default function EditProviderPage() {
                 );
               })}
             </div>
+            {categoryLimitError && (
+              <p className="text-sm text-red-500 mt-2">{categoryLimitError}</p>
+            )}
           </div>
+
+          {subcategories.length > 0 && (
+            <div>
+              <label className="text-sm font-medium text-gray-700">
+                Sub-categories (optional)
+              </label>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {subcategories.map((sub) => {
+                  const active = selectedSubcategories.includes(sub.id);
+                  return (
+                    <button
+                      type="button"
+                      key={sub.id}
+                      onClick={() => toggleSubcategory(sub.id)}
+                      className={`px-4 py-2 rounded-full text-sm border transition ${
+                        active
+                          ? "bg-purple-600 text-white border-purple-600"
+                          : "bg-white text-gray-700 border-gray-200 hover:border-purple-300"
+                      }`}
+                    >
+                      {sub.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <div className="rounded-lg border border-gray-200 p-4">
             <div className="flex items-center justify-between">

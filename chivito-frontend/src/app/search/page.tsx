@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Category = { id: number; name: string; slug: string };
+type Subcategory = { id: number; name: string; slug: string; category_id: number };
 type Provider = {
   id: number;
   name: string;
@@ -18,6 +19,7 @@ type Provider = {
   photo2?: string | null;
   photo3?: string | null;
   categories: Category[];
+  subcategories?: Subcategory[];
 };
 
 const API_BASE =
@@ -48,6 +50,10 @@ export default function SearchPage() {
   const [error, setError] = useState<string | null>(null);
   const [filterIds, setFilterIds] = useState<number[]>([]);
   const [areaFilters, setAreaFilters] = useState<string[]>([]);
+  const [subcategoryFilters, setSubcategoryFilters] = useState<Subcategory[]>([]);
+  const [selectedSubcategoryIds, setSelectedSubcategoryIds] = useState<number[]>(
+    []
+  );
   const router = useRouter();
   const [page, setPage] = useState(1);
   const pageSize = 10;
@@ -105,6 +111,34 @@ export default function SearchPage() {
       window.removeEventListener("service-filter", handler as EventListener);
   }, []);
 
+  useEffect(() => {
+    const loadSubcategories = async () => {
+      if (!filterIds.length) {
+        setSubcategoryFilters([]);
+        setSelectedSubcategoryIds([]);
+        return;
+      }
+      try {
+        const params = new URLSearchParams();
+        filterIds.forEach((id) => params.append("category_ids[]", id.toString()));
+        const res = await fetch(`${API_BASE}/subcategories?${params.toString()}`, {
+          headers: { Accept: "application/json" },
+        });
+        if (!res.ok) throw new Error("Failed to load subcategories");
+        const data = (await res.json()) as Subcategory[];
+        setSubcategoryFilters(data);
+        setSelectedSubcategoryIds((prev) =>
+          prev.filter((id) => data.some((sub) => sub.id === id))
+        );
+      } catch (err) {
+        console.error(err);
+        setSubcategoryFilters([]);
+      }
+    };
+
+    loadSubcategories();
+  }, [filterIds]);
+
   const sortedResults = useMemo(() => {
     const sorted = [...results];
     switch (sort) {
@@ -137,9 +171,14 @@ export default function SearchPage() {
         splitServiceAreas(p.city)
           .map((area) => area.toLowerCase())
           .some((area) => areaFilters.includes(area));
-      return matchesService && matchesArea;
+      const matchesSubcategory =
+        !selectedSubcategoryIds.length ||
+        (p.subcategories || []).some((sub) =>
+          selectedSubcategoryIds.includes(sub.id)
+        );
+      return matchesService && matchesArea && matchesSubcategory;
     });
-  }, [sortedResults, filterIds, areaFilters]);
+  }, [sortedResults, filterIds, areaFilters, selectedSubcategoryIds]);
 
   const pagedResults = useMemo(
     () => visibleResults.slice(0, page * pageSize),
@@ -149,7 +188,7 @@ export default function SearchPage() {
   useEffect(() => {
     // Reset pagination when filters/sort change
     setPage(1);
-  }, [filterIds, areaFilters, sort, results.length]);
+  }, [filterIds, areaFilters, selectedSubcategoryIds, sort, results.length]);
 
   return (
     <div className="min-h-screen px-4 py-6 bg-gray-50">
@@ -198,12 +237,48 @@ export default function SearchPage() {
           })}
       </div>
 
+      {subcategoryFilters.length > 0 && (
+        <>
+          <div className="flex justify-between items-center w-full max-w-5xl mb-3">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Sub-categories
+            </h3>
+          </div>
+          <div className="flex flex-wrap gap-2 w-full max-w-5xl mb-6">
+            {subcategoryFilters.map((sub) => {
+              const active = selectedSubcategoryIds.includes(sub.id);
+              return (
+                <button
+                  key={sub.id}
+                  onClick={() =>
+                    setSelectedSubcategoryIds((prev) =>
+                      prev.includes(sub.id)
+                        ? prev.filter((id) => id !== sub.id)
+                        : [...prev, sub.id]
+                    )
+                  }
+                  className={`px-3 py-1 rounded-full text-sm border transition ${
+                    active
+                      ? "bg-purple-600 text-white border-purple-600"
+                      : "bg-white text-gray-700 border-gray-200 hover:border-purple-300"
+                  }`}
+                >
+                  {sub.name}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+
       {loading && <div className="text-gray-600">Loading...</div>}
       {error && !loading && <div className="text-red-600 text-sm">{error}</div>}
       {!loading &&
         !error &&
         visibleResults.length === 0 &&
-        (filterIds.length > 0 || areaFilters.length > 0) && (
+        (filterIds.length > 0 ||
+          areaFilters.length > 0 ||
+          selectedSubcategoryIds.length > 0) && (
           <div className="text-gray-600 text-sm">
             No services found for this search.
           </div>
@@ -251,6 +326,14 @@ export default function SearchPage() {
                   className="bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full"
                 >
                   {service.name}
+                </span>
+              ))}
+              {(provider.subcategories || []).map((sub) => (
+                <span
+                  key={sub.id}
+                  className="bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full"
+                >
+                  {sub.name}
                 </span>
               ))}
               <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">

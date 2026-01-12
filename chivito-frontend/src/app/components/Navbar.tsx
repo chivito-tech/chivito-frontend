@@ -119,7 +119,9 @@ export default function Navbar() {
         alt="Brega logo"
         className="h-14 w-14 object-contain"
       />
-      <span className="hidden sm:block font-semibold text-gray-800">Brega</span>
+      <span className="hidden sm:block font-semibold text-gray-800">
+        Chivito
+      </span>
     </button>
   );
 
@@ -228,9 +230,10 @@ export default function Navbar() {
               const ids = Array.isArray(value)
                 ? value.map((v: any) => v.value)
                 : [];
-              setSelected(ids);
+              const limited = ids.slice(0, 2);
+              setSelected(limited);
               window.dispatchEvent(
-                new CustomEvent("service-filter", { detail: { ids } })
+                new CustomEvent("service-filter", { detail: { ids: limited } })
               );
               router.push("/search");
             }}
@@ -252,9 +255,10 @@ export default function Navbar() {
             const ids = Array.isArray(value)
               ? value.map((v: any) => v.value)
               : [];
-            setSelected(ids);
+            const limited = ids.slice(0, 2);
+            setSelected(limited);
             window.dispatchEvent(
-              new CustomEvent("service-filter", { detail: { ids } })
+              new CustomEvent("service-filter", { detail: { ids: limited } })
             );
             router.push("/search");
           }}

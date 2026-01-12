@@ -9,6 +9,13 @@ type Category = {
   slug: string;
 };
 
+type Subcategory = {
+  id: number;
+  name: string;
+  slug: string;
+  category_id: number;
+};
+
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8002/api";
 
@@ -22,6 +29,8 @@ export default function RegisterYourService() {
   const [startingPrice, setStartingPrice] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [selectedSubcategories, setSelectedSubcategories] = useState<number[]>([]);
   const [primaryPhoto, setPrimaryPhoto] = useState<File | null>(null);
   const [extraPhotos, setExtraPhotos] = useState<File[]>([]);
   const [primaryPreview, setPrimaryPreview] = useState<string | null>(null);
@@ -30,6 +39,7 @@ export default function RegisterYourService() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loadingCategories, setLoadingCategories] = useState(false);
+  const [categoryLimitError, setCategoryLimitError] = useState<string | null>(null);
   const [isAuthed, setIsAuthed] = useState(false);
 
   const areaOptions = [
@@ -78,6 +88,38 @@ export default function RegisterYourService() {
   }, [router]);
 
   useEffect(() => {
+    const loadSubcategories = async () => {
+      if (!selectedCategories.length) {
+        setSubcategories([]);
+        setSelectedSubcategories([]);
+        return;
+      }
+      try {
+        const params = new URLSearchParams();
+        selectedCategories.forEach((id) =>
+          params.append("category_ids[]", id.toString())
+        );
+        const res = await fetch(`${API_BASE}/subcategories?${params.toString()}`, {
+          headers: { Accept: "application/json" },
+        });
+        if (!res.ok) {
+          throw new Error("Failed to load subcategories");
+        }
+        const data = (await res.json()) as Subcategory[];
+        setSubcategories(data);
+        setSelectedSubcategories((prev) =>
+          prev.filter((id) => data.some((sub) => sub.id === id))
+        );
+      } catch (err) {
+        console.error(err);
+        setSubcategories([]);
+      }
+    };
+
+    loadSubcategories();
+  }, [selectedCategories]);
+
+  useEffect(() => {
     if (!primaryPhoto) {
       setPrimaryPreview(null);
       return;
@@ -96,8 +138,22 @@ export default function RegisterYourService() {
   }, [extraPhotos]);
 
   const toggleCategory = (id: number) => {
-    setSelectedCategories((prev) =>
-      prev.includes(id) ? prev.filter((catId) => catId !== id) : [...prev, id]
+    setCategoryLimitError(null);
+    setSelectedCategories((prev) => {
+      if (prev.includes(id)) {
+        return prev.filter((catId) => catId !== id);
+      }
+      if (prev.length >= 2) {
+        setCategoryLimitError("You can select up to 2 categories.");
+        return prev;
+      }
+      return [...prev, id];
+    });
+  };
+
+  const toggleSubcategory = (id: number) => {
+    setSelectedSubcategories((prev) =>
+      prev.includes(id) ? prev.filter((subId) => subId !== id) : [...prev, id]
     );
   };
 
@@ -133,6 +189,9 @@ export default function RegisterYourService() {
       }
       selectedCategories.forEach((id) =>
         formData.append("category_ids[]", id.toString())
+      );
+      selectedSubcategories.forEach((id) =>
+        formData.append("subcategory_ids[]", id.toString())
       );
       if (primaryPhoto) {
         formData.append("photos[]", primaryPhoto);
@@ -170,6 +229,7 @@ export default function RegisterYourService() {
       setAreas([]);
       setStartingPrice("");
       setSelectedCategories([]);
+      setSelectedSubcategories([]);
       setPrimaryPhoto(null);
       setExtraPhotos([]);
       router.push("/");
@@ -449,7 +509,37 @@ export default function RegisterYourService() {
                 </p>
               )}
             </div>
+            {categoryLimitError && (
+              <p className="text-sm text-red-500 mt-2">{categoryLimitError}</p>
+            )}
           </div>
+
+          {subcategories.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Sub-categories (optional)
+              </label>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {subcategories.map((sub) => {
+                  const active = selectedSubcategories.includes(sub.id);
+                  return (
+                    <button
+                      type="button"
+                      key={sub.id}
+                      onClick={() => toggleSubcategory(sub.id)}
+                      className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
+                        active
+                          ? "bg-purple-600 text-white border-purple-600 shadow"
+                          : "bg-white text-gray-700 border-gray-300 hover:border-purple-400"
+                      }`}
+                    >
+                      {sub.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {error && (
             <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-red-700">

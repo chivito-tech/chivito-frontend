@@ -9,6 +9,13 @@ type Category = {
   slug: string;
 };
 
+type Subcategory = {
+  id: number;
+  name: string;
+  slug: string;
+  category_id: number;
+};
+
 type Provider = {
   id: number;
   user_id?: number | null;
@@ -23,6 +30,7 @@ type Provider = {
   photo2?: string | null;
   photo3?: string | null;
   categories: Category[];
+  subcategories?: Subcategory[];
 };
 
 const API_BASE =
@@ -253,6 +261,14 @@ export default function ProviderDetailPage() {
                   className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium"
                 >
                   {c.name}
+                </span>
+              ))}
+              {(provider.subcategories || []).map((sub) => (
+                <span
+                  key={sub.id}
+                  className="bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-xs font-medium"
+                >
+                  {sub.name}
                 </span>
               ))}
             </div>
