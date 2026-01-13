@@ -3,20 +3,69 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8002/api";
+
 export default function SecuritySettingsPage() {
   const router = useRouter();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [message, setMessage] = useState<string | null>(null);
 
-  const handleChangePassword = (event: React.FormEvent) => {
+  const handleChangePassword = async (event: React.FormEvent) => {
     event.preventDefault();
-    setMessage("Password change will be wired to the backend.");
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setMessage("Please log in to change your password.");
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE}/password/change`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          current_password: currentPassword,
+          new_password: newPassword,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const detail =
+          data?.message ||
+          data?.error ||
+          (data?.errors && JSON.stringify(data.errors)) ||
+          "Could not change password.";
+        setMessage(detail);
+        return;
+      }
+      setMessage("Password updated.");
+    } catch (err) {
+      console.error(err);
+      setMessage("Could not change password.");
+    }
     setCurrentPassword("");
     setNewPassword("");
   };
 
-  const handleLogoutAll = () => {
+  const handleLogoutAll = async () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        await fetch(`${API_BASE}/logout/all`, {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     window.dispatchEvent(new Event("auth-change"));

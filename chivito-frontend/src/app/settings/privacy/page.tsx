@@ -3,20 +3,49 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8002/api";
+
 export default function PrivacySettingsPage() {
   const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     const confirmed = window.confirm(
       "Are you sure you want to delete your account? This cannot be undone."
     );
     if (!confirmed) return;
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    window.dispatchEvent(new Event("auth-change"));
-    setMessage("Account deletion will be wired to the backend.");
-    router.push("/");
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setMessage("Please log in to delete your account.");
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE}/profile`, {
+        method: "DELETE",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const detail =
+          data?.message ||
+          data?.error ||
+          (data?.errors && JSON.stringify(data.errors)) ||
+          "Could not delete account.";
+        setMessage(detail);
+        return;
+      }
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+      window.dispatchEvent(new Event("auth-change"));
+      router.push("/");
+    } catch (err) {
+      console.error(err);
+      setMessage("Could not delete account.");
+    }
   };
 
   return (
