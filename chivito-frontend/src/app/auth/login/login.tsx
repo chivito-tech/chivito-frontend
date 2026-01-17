@@ -36,10 +36,19 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
+      const raw = await response.text();
+      let data: any = null;
+      try {
+        data = raw ? JSON.parse(raw) : null;
+      } catch {
+        data = null;
+      }
 
       if (!response.ok) {
-        setError(data?.error || "Login failed. Please check your credentials.");
+        const fallback = raw?.trim().startsWith("<")
+          ? "Server error. Check backend logs."
+          : "Login failed. Please check your credentials.";
+        setError(data?.error || data?.message || fallback);
         return;
       }
 
