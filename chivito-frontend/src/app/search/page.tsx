@@ -20,6 +20,7 @@ type Provider = {
   photo3?: string | null;
   categories: Category[];
   subcategories?: Subcategory[];
+  reviews?: { id: number; rating: number }[];
 };
 
 const API_BASE =
@@ -38,6 +39,17 @@ const splitServiceAreas = (value?: string | null) => {
     .split(/[,/]+/)
     .map((part) => part.trim())
     .filter(Boolean);
+};
+
+const getAverageRating = (reviews?: { rating: number }[]) => {
+  if (!reviews || !reviews.length) return null;
+  const total = reviews.reduce((sum, review) => sum + review.rating, 0);
+  return total / reviews.length;
+};
+
+const renderStars = (average: number) => {
+  const rounded = Math.round(average);
+  return "★".repeat(rounded) + "☆".repeat(5 - rounded);
 };
 
 
@@ -329,6 +341,17 @@ export default function SearchPage() {
                       : "Contact for quote"}
                   </span>
                 </div>
+                {getAverageRating(provider.reviews) != null && (
+                  <div className="mt-1 text-sm text-gray-600 flex items-center gap-2">
+                    <span className="text-yellow-500">
+                      {renderStars(getAverageRating(provider.reviews) || 0)}
+                    </span>
+                    <span>
+                      {getAverageRating(provider.reviews)?.toFixed(1)} (
+                      {provider.reviews?.length ?? 0})
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 

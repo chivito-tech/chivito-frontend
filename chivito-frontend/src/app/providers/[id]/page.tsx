@@ -16,6 +16,13 @@ type Subcategory = {
   category_id: number;
 };
 
+type Review = {
+  id: number;
+  rating: number;
+  description?: string | null;
+  user?: { id: number; first_name?: string | null; last_name?: string | null };
+};
+
 type Provider = {
   id: number;
   user_id?: number | null;
@@ -31,6 +38,7 @@ type Provider = {
   photo3?: string | null;
   categories: Category[];
   subcategories?: Subcategory[];
+  reviews?: Review[];
 };
 
 const API_BASE =
@@ -55,6 +63,10 @@ export default function ProviderDetailPage() {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
   const [activePhoto, setActivePhoto] = useState<string | null>(null);
+  const [reviewRating, setReviewRating] = useState<number>(0);
+  const [reviewText, setReviewText] = useState("");
+  const [reviewMessage, setReviewMessage] = useState<string | null>(null);
+  const [reviewLoading, setReviewLoading] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem("user");
@@ -127,6 +139,12 @@ export default function ProviderDetailPage() {
         | undefined,
     [provider]
   );
+
+  const averageRating = useMemo(() => {
+    if (!provider?.reviews?.length) return null;
+    const total = provider.reviews.reduce((sum, review) => sum + review.rating, 0);
+    return total / provider.reviews.length;
+  }, [provider?.reviews]);
 
   if (loading) {
     return (
@@ -273,6 +291,18 @@ export default function ProviderDetailPage() {
               ))}
             </div>
 
+            {averageRating != null && (
+              <div className="mt-3 text-sm text-gray-600 flex items-center gap-2">
+                <span className="text-yellow-500">
+                  {"★".repeat(Math.round(averageRating)) +
+                    "☆".repeat(5 - Math.round(averageRating))}
+                </span>
+                <span>
+                  {averageRating.toFixed(1)} ({provider.reviews?.length ?? 0})
+                </span>
+              </div>
+            )}
+
             <div className="mt-4">
               <h3 className="text-lg font-semibold text-gray-900">About Me</h3>
               <p className="text-gray-700 mt-2">
@@ -290,6 +320,129 @@ export default function ProviderDetailPage() {
                 >
                   {provider.phone}
                 </a>
+              </div>
+            </div>
+
+            <div className="mt-8 border-t border-gray-200 pt-6">
+              <h3 className="text-lg font-semibold text-gray-900">Reviews</h3>
+              <div className="mt-4 space-y-4">
+                {(provider.reviews || []).length === 0 && (
+                  <p className="text-sm text-gray-500">No reviews yet.</p>
+                )}
+                {(provider.reviews || []).map((review) => (
+                  <div key={review.id} className="border rounded-lg p-4">
+                    <div className="flex items-center justify-between text-sm text-gray-600">
+                      <span className="font-semibold text-gray-900">
+                        {[review.user?.first_name, review.user?.last_name]
+                          .filter(Boolean)
+                          .join(" ") || "User"}
+                      </span>
+                      <span className="text-yellow-500">
+                        {"★".repeat(review.rating) +
+                          "☆".repeat(5 - review.rating)}
+                      </span>
+                    </div>
+                    {review.description && (
+                      <p className="text-sm text-gray-600 mt-2">
+                        {review.description}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6">
+                <h4 className="text-sm font-semibold text-gray-900">
+                  Leave a review
+                </h4>
+                <div className="mt-3 flex items-center gap-2">
+                  {[1, 2, 3, 4, 5].map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setReviewRating(value)}
+                      className={`text-xl ${
+                        value <= reviewRating ? "text-yellow-500" : "text-gray-300"
+                      }`}
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
+                <textarea
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
+                  className="mt-3 w-full rounded-lg border border-gray-300 px-4 py-3"
+                  rows={3}
+                  placeholder="Optional description"
+                />
+                <button
+                  type="button"
+                  disabled={reviewLoading || reviewRating === 0}
+                  onClick={async () => {
+                    const storedUser = localStorage.getItem("user");
+                    const token = localStorage.getItem("token");
+                    if (!storedUser || !token) {
+                      router.push("/login");
+                      return;
+                    }
+                    if (!provider?.id) return;
+                    setReviewLoading(true);
+                    setReviewMessage(null);
+                    try {
+                      const res = await fetch(
+                        `${API_BASE}/providers/${provider.id}/reviews`,
+                        {
+                          method: "POST",
+                          headers: {
+                            Accept: "application/json",
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                          },
+                          body: JSON.stringify({
+                            rating: reviewRating,
+                            description: reviewText.trim() || null,
+                          }),
+                        }
+                      );
+                      const data = await res.json();
+                      if (!res.ok) {
+                        const detail =
+                          data?.message ||
+                          data?.error ||
+                          (data?.errors && JSON.stringify(data.errors)) ||
+                          "Could not submit review.";
+                        setReviewMessage(detail);
+                        return;
+                      }
+                      setProvider((prev) => {
+                        if (!prev) return prev;
+                        const remaining =
+                          prev.reviews?.filter(
+                            (r) => r.user?.id !== data.user?.id
+                          ) ?? [];
+                        return {
+                          ...prev,
+                          reviews: [data, ...remaining],
+                        };
+                      });
+                      setReviewMessage("Review submitted.");
+                      setReviewText("");
+                      setReviewRating(0);
+                    } catch (err) {
+                      console.error(err);
+                      setReviewMessage("Could not submit review.");
+                    } finally {
+                      setReviewLoading(false);
+                    }
+                  }}
+                  className="mt-3 px-5 py-2.5 rounded-lg bg-purple-600 text-white font-semibold hover:bg-purple-700 disabled:opacity-70"
+                >
+                  {reviewLoading ? "Submitting..." : "Submit review"}
+                </button>
+                {reviewMessage && (
+                  <p className="text-sm text-gray-600 mt-2">{reviewMessage}</p>
+                )}
               </div>
             </div>
           </div>
